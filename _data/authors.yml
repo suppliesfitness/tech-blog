@@ -20,3 +20,14 @@ Dean:
   facebook: False
   twitter: False
   cover: False
+Gwen:
+  username: Gwen
+  name: Gwen
+  location: Seoul
+  url_full: False
+  url: False
+  bio: Frontend Developer
+  picture: assets/images/authors/gwen.jpg
+  facebook: False
+  twitter: False
+  cover: False
