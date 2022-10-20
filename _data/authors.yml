@@ -2,10 +2,10 @@ Sue:
   username: Sue
   name: Sue
   location: Seoul
-  url_full:  False
+  url_full: False
   url: False
   bio: Backend Developer
-  picture: assets/images/authors/sue.jpg
+  picture: assets/images/authors/sue.jpeg
   facebook: False
   twitter: False
   cover: False
@@ -13,7 +13,7 @@ Dean:
   username: Dean
   name: Dean
   location: Seoul
-  url_full:  https://github.com/kimcrab
+  url_full: https://github.com/kimcrab
   url: https://github.com/kimcrab
   bio: Backend Developer
   picture: assets/images/authors/dean.jpg
@@ -28,6 +28,17 @@ Gwen:
   url: False
   bio: Frontend Developer
   picture: assets/images/authors/gwen.jpg
+  facebook: False
+  twitter: False
+  cover: False
+Tony:
+  username: Tony
+  name: Tony
+  location: Seoul
+  url_full: False
+  url: False
+  bio: Frontend Developer / PO
+  picture: assets/images/authors/tony.jpeg
   facebook: False
   twitter: False
   cover: False
