@@ -17,7 +17,7 @@ author: Gwen
 올 초, 메타의 소프트웨어 개발자는 리액트 네이티브 (이하 RN) 블로그에 “2022 is going to be the year of the **New Architecture in open source**.” 라며 새로운 아키텍처를 RN 을 도입하겠다고 발표하였습니다. 어떤 변화들이 RN 에 적용되었고 될 것인지 간략하게 다루어보겠습니다.
 
 ## JSI
-![bridge]](./assets/images/new-architecture/bridge.png){: width="800"}
+![bridge](./assets/images/new-architecture/bridge.png){: width="800"}
 RN 은 단일 브릿지를 통해 자바스크립트 스레드와 네이티브 스레드가 소통하는데, 비동기식이며 JSON 직렬화 및 일괄 처리가 가능합니다. 이러한 구조로 인해 자바스크립트 스레드와 네이티브 스레드가 직접적으로 소통할 수 없다는 단점, 짧은 시간 내에 많은 상호작용이 이루어질 시 프레임 드랍이 발생하는 문제점 등이 있었습니다.
 이와 같은 문제점들을 개선하기 위해 자바스크립트 인터페이스 (JSI) 가 등장하였습니다. JSI 란 C++ 로 작성된 추상화 레이어입니다. JSI 를 통해 네이티브 메소드들은 C++ 호스트 객체를 통해 자바스크립트에 노출됩니다. 이로써 직접적으로 메소드를 실행할 수 있습니다. 또한 JSI 가 C++ 로 작성됨에 따라 RN 은 앞으로 스마트 티비, 스마트 워치와 같은 다양한 프로그램에 이식될 수 있을 것으로 예상됩니다.
 
@@ -48,4 +48,4 @@ Codegen 은 새로운 아키텍처에 포함된 정적 type checker 입니다. �
 여기까지가 제가 알아본 내용입니다. 이러한 변화들이 얼만큼의 성능 개선을 가져올지 기대가 되는 바입니다 :)
 
 좀 더 자세한 내용은 아래 React Native 홈페이지에서 확인할 수 있습니다.
-https://reactnative.dev/docs/next/the-new-architecture/why
+<https://reactnative.dev/docs/next/the-new-architecture/why>
