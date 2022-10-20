@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Base Meta -->
+    <!-- dynamically fixing the title for tag/author pages -->
+
+
+
+    <title>React Native에서 딥링크 구현하기</title>
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.edited.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/syntax.css" />
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+    <style>
+        .hljs {
+            background: none;
+        }
+    </style>
+
+    <!--[if IE]>
+        <style>
+            p, ol, ul{
+                width: 100%;
+            }
+            blockquote{
+                width: 100%;
+            }
+        </style>
+    <![endif]-->
+
+    <!-- This tag outputs SEO meta+structured data and other important settings -->
+    <meta name="description"
+    content="" />
+<link rel="shortcut icon" href="/tech-blog/assets/images/supplies-logo-black.png" type="image/png" />
+<link rel="canonical"
+    href="/tech-blog/rn-deeplink" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+
+<!--title below is coming from _includes/dynamic_title-->
+<meta property="og:site_name" content="Supplies Tech Blog" />
+<meta property="og:type" content="website" />
+<meta property="og:title"
+    content="React Native에서 딥링크 구현하기" />
+<meta property="og:description"
+    content="현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다. 저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다. 리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다. 딥링크 딥링크란 모바일 환경 속 유저를 웹사이트가 아닌 앱의 특정 화면에 도달할 수 있게 해주는 링크입니다. 마케팅, 참여 유도 캠페인," />
+<meta property="og:url"
+    content="/tech-blog/rn-deeplink" />
+<meta property="og:image"
+    content="/tech-blog/assets/images/deeplink/cover.png" />
+<meta property="article:publisher" content="https://www.facebook.com/" />
+<meta property="article:author" content="https://www.facebook.com/" />
+<meta property="article:published_time"
+    content="2022-08-28T15:12:12+00:00" />
+<meta property="article:modified_time"
+    content="2022-08-28T15:12:12+00:00" />
+
+<!-- <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="React Native에서 딥링크 구현하기" />
+    <meta name="twitter:description" content="현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다. 저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다. 리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다. 딥링크 딥링크란 모바일 환경 속 유저를 웹사이트가 아닌 앱의 특정 화면에 도달할 수 있게 해주는 링크입니다. 마케팅, 참여 유도 캠페인," />
+    <meta name="twitter:url" content="/tech-blog/" />
+    <meta name="twitter:image" content="/tech-blog/assets/images/deeplink/cover.png" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Supplies Tech Blog" />
+    <meta name="twitter:site" content="@" />
+    <meta name="twitter:creator" content="@" /> -->
+<meta property="og:image:width" content="1400" />
+<meta property="og:image:height" content="933" />
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Website",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Supplies Tech Blog",
+        "logo": "/tech-blog/"
+    },
+    "url": "/tech-blog/rn-deeplink",
+    "image": {
+        "@type": "ImageObject",
+        "url": "/tech-blog/assets/images/deeplink/cover.png",
+        "width": 2000,
+        "height": 666
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/tech-blog/rn-deeplink"
+    },
+    "description": "현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다. 저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다. 리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다. 딥링크 딥링크란 모바일 환경 속 유저를 웹사이트가 아닌 앱의 특정 화면에 도달할 수 있게 해주는 링크입니다. 마케팅, 참여 유도 캠페인,"
+}
+    </script>
+
+<!-- <script type="text/javascript" src="https://demo.ghost.io/public/ghost-sdk.min.js?v=724281a32e"></script>
+    <script type="text/javascript">
+    ghost.init({
+    	clientId: "ghost-frontend",
+    	clientSecret: "f84a07a72b17"
+    });
+    </script> -->
+
+<meta name="generator" content="Jekyll 3.6.2" />
+<link rel="alternate" type="application/rss+xml"
+    title="React Native에서 딥링크 구현하기"
+    href="/tech-blog/feed.xml" />
+
+</head>
+
+<body
+    class="post-template">
+
+    <div class="site-wrapper">
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The tag above means: insert everything in this file
+into the {body} of the default.hbs template -->
+
+<header class="site-header outer">
+    <div class="inner">
+        <nav class="site-nav">
+    <div class="site-nav-left">
+        
+            
+                <a class="site-nav-logo" href="/tech-blog/">Supplies Tech Blog</a>
+            
+        
+        
+            <ul class="nav" role="menu">
+    <!-- <li class="nav-home" role="menuitem"><a href="/tech-blog/">Home</a></li> -->
+    <!-- <li class="nav-about" role="menuitem"><a href="/tech-blog/about/">About</a></li>
+    <li class="nav-getting-started" role="menuitem"><a href="/tech-blog/tag/getting-started/">Getting Started</a></li>
+    <li class="nav-try-ghost" role="menuitem"><a href="https://ghost.org">Try Ghost</a></li> -->
+</ul>
+        
+    </div>
+    <div class="site-nav-right">
+        <div class="social-links">
+            
+            
+        </div>
+        
+    </div>
+</nav>
+
+    </div>
+</header>
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<main id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+
+        <article class="post-full  post ">
+
+            <header class="post-full-header">
+                <section class="post-full-meta">
+                    <time class="post-full-meta-date" datetime="28 August 2022">28 August 2022</time>
+                    
+                </section>
+                <h1 class="post-full-title">React Native에서 딥링크 구현하기</h1>
+            </header>
+
+            
+            <figure class="post-full-image" style="background-image: url(/tech-blog/assets/images/deeplink/cover.png)">
+            </figure>
+            
+
+            <section class="post-full-content">
+                <div class="kg-card-markdown">
+                    <p>현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다.
+저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다.
+리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다.</p>
+
+<h2 id="딥링크">딥링크</h2>
+
+<p>딥링크란 모바일 환경 속 유저를 웹사이트가 아닌 앱의 특정 화면에 도달할 수 있게 해주는 링크입니다.
+마케팅, 참여 유도 캠페인, 쇼핑 등에 활용됩니다.</p>
+
+<p>대게 URI Scheme 방식을 사용하는데, URI Scheme 은 Scheme://Path 라는 두 가지 요소로 구성됩니다.
+Scheme 은 앱을 특정 짓고, Path 는 도달할 화면을 의미합니다.</p>
+
+<blockquote>
+  <p>myapp://example</p>
+</blockquote>
+
+<p>Scheme 은 중복될 수 있다는 단점이 있어 자신의 앱을 특정 지을 수 있도록 최대한 유니크하게 작명해야 합니다.
+만일 Scheme 이 중복된다면, 사용자는 어떤 앱을 열 것인지 선택해야 할 것입니다.</p>
+
+<h2 id="유니버셜-링크--앱링크">유니버셜 링크 &amp; 앱링크</h2>
+
+<p>애플의 유니버셜 링크와 안드로이드의 앱링크는 딥링크와 비슷하게 작동하는 url 기반의 링크입니다.
+딥링크와는 다르게 사용자는 웹사이트를 거쳐 앱으로 이동하게 됩니다. 만약 앱이 설치되어있지 않다면, 앱스토어로 이동하게 됩니다.</p>
+
+<h2 id="리액트-네이티브에서-적용하는-법">리액트 네이티브에서 적용하는 법</h2>
+
+<h3 id="ios">ios</h3>
+<p>RCTLinking 을 프로젝트에 연결해주기 위해 아래와 같은 코드를 AppDelegate.m 에 추가합니다.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// 파일 최상단에 추가:
+#import &lt;React/RCTLinkingManager.h&gt;
+
+// `@end` 위에 추가:
+-	(BOOL)application:(UIApplication *)application
+	openURL:(NSURL *)url
+	options:(NSDictionary&lt;UIApplicationOpenURLOptionsKey,id&gt; *)options
+{
+	return [RCTLinkingManager application:application openURL:url options:options];
+}
+</code></pre></div></div>
+<p>유니버셜 링크를 적용할 예정이라면, 아래 코드 또한 추가해줍니다.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// `@end` 위에 추가:
+-	(BOOL)application:(UIApplication *)application continueUserActivity:(nonnull 		NSUserActivity *)userActivity
+restorationHandler:(nonnull void (^)(NSArray&lt;id&lt;UIUserActivityRestoring&gt;&gt; * _Nullable))restorationHandler
+{
+	return [RCTLinkingManager application:application
+			continueUserActivity:userActivity
+			restorationHandler:restorationHandler];
+}
+</code></pre></div></div>
+
+<p>이제 xcode 를 켜고 프로젝트의 info 탭으로 이동합니다.
+딥링크가 작동할 수 있도록 URL Types 에 아이템을 하나 추가해줍시다.</p>
+
+<p><img src="./assets/images/deeplink/xcode-info.png" alt="xcode" width="800" /></p>
+
+<p>유니버셜 링크를 적용할 예정이라면, Signing &amp; Capabilities 의 Associated Domains 에 도메인을 추가해줍시다.
+저희는 원링크를 통해 유니버셜 링크를 적용했기 때문에 아래 사진과 같이 도메인을 추가하였습니다.</p>
+
+<p><img src="./assets/images/deeplink/domains.png" alt="AssociatedDomains" width="800" /></p>
+
+<h3 id="android">android</h3>
+<p>android/app/src/main/AndroidManifest.xml 를 아래와 같이 수정해줍시다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;activity
+	android:name=".MainActivity"
+	android:launchMode="singleTask"&gt;
+	&lt;intent-filter&gt;
+		&lt;action android:name="android.intent.action.MAIN" /&gt;
+		&lt;category android:name="android.intent.category.LAUNCHER" /&gt;
+	&lt;/intent-filter&gt;
+	&lt;!-- 아래 코드를 추가 --&gt;
+	&lt;intent-filter&gt;
+		&lt;action android:name="android.intent.action.VIEW" /&gt;
+		&lt;category android:name="android.intent.category.DEFAULT" /&gt;
+		&lt;category android:name="android.intent.category.BROWSABLE" /&gt;
+		&lt;data android:scheme="myapp" /&gt;
+	&lt;/intent-filter&gt;
+&lt;/activity&gt;
+</code></pre></div></div>
+
+<p>앱 링크를 적용할 예정이라면, 아까 추가한 intent-filter 에 아래 코드 또한 추가해줍니다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;data android:scheme="https" android:host="www.example.com" /&gt;
+&lt;data android:scheme="http" android:host="www.example.com" /&gt;
+</code></pre></div></div>
+
+<p>** 원링크와 같은 제3자 서비스가 아닌 자체적으로 유니버셜 링크를 개발하고자 한다면 더 많은 과정이 추가될 수 있습니다.</p>
+
+<h4 id="linking">Linking</h4>
+<p>딥링크로 앱이 열리게 되면, 우리는 해당 이벤트를 전달 받아 원하는 바를 수행할 수 있습니다.
+React Native 의 Linking 을 통해 이를 구현해봅시다.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Linking.getInitialURL().then(url =&gt; {
+	if (url) {
+		// 코드
+	}
+});
+</code></pre></div></div>
+<p>앱이 링크를 통해 구동되었다면, url 을 반환하고 아니라면 null 을 반환합니다.
+정규식을 통해 /deep_link_value=1234 에서 1234 를 가져올 수 있도록 하였습니다.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>useEffect(() =&gt; {
+	const subscription = Linking.addEventListener("url", ({ url }) =&gt; {
+		if (url) {
+			// 코드
+		}
+	});
+	return () =&gt; {
+		subscription.remove();
+	};
+});
+</code></pre></div></div>
+<p>앱이 실행 중인 상태에서 링크를 처리하는 이벤트 핸들러입니다.
+두 가지 모두 상황에 맞게 작성하면 되겠습니다 :)</p>
+
+<h2 id="마무리하며">마무리하며</h2>
+<p>이렇게 해서 리액트 네이티브에서 딥링크 와 유니버셜 링크, 그리고 앱링크를 사용하는 법에 대해 알아보았습니다.
+원활한 테스트를 위해 시뮬레이터가 아닌 실제 기기에서 테스트 해보는 것을 추천드립니다.</p>
+
+<p>그럼 즐거운 RN 개발 되세요!</p>
+
+                </div>
+            </section>
+
+            <!-- Email subscribe form at the bottom of the page -->
+            
+
+            <footer class="post-full-footer">
+                <!-- Everything inside the #author tags pulls data from the author -->
+                <!-- #author-->
+                
+                    
+                
+                    
+                
+                    
+                        <section class="author-card">
+                            
+                                <img class="author-profile-image" src="/tech-blog/assets/images/authors/gwen.jpeg" alt="Gwen" />
+                            
+                            <section class="author-card-content">
+                                <h4 class="author-card-name"><a href="/tech-blog/author/Gwen">Gwen</a></h4>
+                                
+                                    <p>Frontend Developer</p>
+                                
+                            </section>
+                        </section>
+                        <div class="post-full-footer-right">
+                            <a class="author-card-button" href="/tech-blog/author/Gwen">Read More</a>
+                        </div>
+                    
+                
+                    
+                
+                <!-- /author  -->
+            </footer>
+
+            <!-- If you use Disqus comments, just uncomment this block.
+            The only thing you need to change is "test-apkdzgmqhj" - which
+            should be replaced with your own Disqus site-id. -->
+            
+
+        </article>
+
+    </div>
+</main>
+
+<!-- Links to Previous/Next posts -->
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+
+            <!-- If there's a next post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/tech-blog/rn-new-architecture">
+                <div class="post-card-image" style="background-image: url(/tech-blog/assets/images/new-architecture/cover.png)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/tech-blog/rn-new-architecture">
+                <header class="post-card-header">
+                    
+
+                    <h2 class="post-card-title">리액트 네이티브의 새로운 아키텍처</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>
+  2022 is going to be the year of the New Architecture in open
+source.
+
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                
+                    
+                
+                    
+                        
+                        <img class="author-profile-image" src="/tech-blog/assets/images/authors/gwen.jpeg" alt="Gwen" />
+                        
+                        <span class="post-card-author">
+                            <a href="/tech-blog/author/Gwen/">Gwen</a>
+                        </span>
+                    
+                
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      1 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+            <!-- If there's a previous post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/tech-blog/azure-face-api">
+                <div class="post-card-image" style="background-image: url(/tech-blog/assets/images/azure-face-api/face_api.jpeg)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/tech-blog/azure-face-api">
+                <header class="post-card-header">
+                    
+
+                    <h2 class="post-card-title">Azure Face API 사용기</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>Gymboxx 안면 출입 서비스
+
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                        
+                        <img class="author-profile-image" src="/tech-blog/assets/images/authors/sue.jpeg" alt="Sue" />
+                        
+                        <span class="post-card-author">
+                            <a href="/tech-blog/author/Sue/">Sue</a>
+                        </span>
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      3 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+        </div>
+    </div>
+</aside>
+
+<!-- Floating header which appears on-scroll, included from includes/floating-header.hbs -->
+<div class="floating-header">
+    <div class="floating-header-logo">
+        <a href="/tech-blog/">
+            
+            <img src="/tech-blog/assets/images/supplies-logo-black.png" alt="Supplies Tech Blog icon" />
+            
+            <span>Supplies Tech Blog</span>
+        </a>
+    </div>
+    <span class="floating-header-divider">&mdash;</span>
+    <div class="floating-header-title">React Native에서 딥링크 구현하기</div>
+    <!-- <div class="floating-header-share">
+        <div class="floating-header-share-label">Share this <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M7.5 15.5V4a1.5 1.5 0 1 1 3 0v4.5h2a1 1 0 0 1 1 1h2a1 1 0 0 1 1 1H18a1.5 1.5 0 0 1 1.5 1.5v3.099c0 .929-.13 1.854-.385 2.748L17.5 23.5h-9c-1.5-2-5.417-8.673-5.417-8.673a1.2 1.2 0 0 1 1.76-1.605L7.5 15.5zm6-6v2m-3-3.5v3.5m6-1v2"/>
+</svg>
+</div>
+        <a class="floating-header-share-tw" href="https://twitter.com/share?text=React+Native%EC%97%90%EC%84%9C+%EB%94%A5%EB%A7%81%ED%81%AC+%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0&amp;url=https://suppliesfitness.github.io/tech-blog/rn-deeplink"
+            onclick="window.open(this.href, 'share-twitter', 'width=550,height=235');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M30.063 7.313c-.813 1.125-1.75 2.125-2.875 2.938v.75c0 1.563-.188 3.125-.688 4.625a15.088 15.088 0 0 1-2.063 4.438c-.875 1.438-2 2.688-3.25 3.813a15.015 15.015 0 0 1-4.625 2.563c-1.813.688-3.75 1-5.75 1-3.25 0-6.188-.875-8.875-2.625.438.063.875.125 1.375.125 2.688 0 5.063-.875 7.188-2.5-1.25 0-2.375-.375-3.375-1.125s-1.688-1.688-2.063-2.875c.438.063.813.125 1.125.125.5 0 1-.063 1.5-.25-1.313-.25-2.438-.938-3.313-1.938a5.673 5.673 0 0 1-1.313-3.688v-.063c.813.438 1.688.688 2.625.688a5.228 5.228 0 0 1-1.875-2c-.5-.875-.688-1.813-.688-2.75 0-1.063.25-2.063.75-2.938 1.438 1.75 3.188 3.188 5.25 4.25s4.313 1.688 6.688 1.813a5.579 5.579 0 0 1 1.5-5.438c1.125-1.125 2.5-1.688 4.125-1.688s3.063.625 4.188 1.813a11.48 11.48 0 0 0 3.688-1.375c-.438 1.375-1.313 2.438-2.563 3.188 1.125-.125 2.188-.438 3.313-.875z"/></svg>
+
+        </a>
+        <a class="floating-header-share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https://suppliesfitness.github.io/tech-blog/rn-deeplink"
+            onclick="window.open(this.href, 'share-facebook','width=580,height=296');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M19 6h5V0h-5c-3.86 0-7 3.14-7 7v3H8v6h4v16h6V16h5l1-6h-6V7c0-.542.458-1 1-1z"/></svg>
+
+        </a>
+    </div> -->
+    <progress class="progress" value="0">
+        <div class="progress-container">
+            <span class="progress-bar"></span>
+        </div>
+    </progress>
+</div>
+
+<!-- /post -->
+
+<!-- The #contentFor helper here will send everything inside it up to the matching #block helper found in default.hbs -->
+
+
+        <!-- Previous/next page links - displayed on every page -->
+        
+
+        <!-- The footer at the very bottom of the screen -->
+        <footer class="site-footer outer">
+            <div class="site-footer-content inner">
+                <section class="copyright"><a href="/tech-blog/">Supplies Tech Blog</a> &copy; 2022</section>
+                <!-- <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> &
+                    <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a> using
+                    <a href="https://github.com/jekyllt/jasper2" target="_blank" rel="noopener">Jasper2</a></section>
+                <nav class="site-footer-nav">
+                    <a href="/tech-blog/">Latest Posts</a>
+                    
+                    
+                    <a href="https://ghost.org" target="_blank" rel="noopener">Ghost</a> -->
+                </nav>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- The big email subscribe modal content -->
+    
+
+    <!-- highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.10.0/components/prism-abap.min.js"></script>
+    <script>$(document).ready(function () {
+            $('pre code').each(function (i, block) {
+                hljs.highlightBlock(block);
+            });
+        });</script>
+
+    <!-- jQuery + Fitvids, which makes all video embeds responsive -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous">
+        </script>
+    <script type="text/javascript" src="/tech-blog/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="https://demo.ghost.io/assets/js/jquery.fitvids.js?v=724281a32e"></script>
+
+
+    <!-- Paginator increased to "infinit" in _config.yml -->
+    <!-- if paginator.posts  -->
+    <!-- <script>
+        var maxPages = parseInt('');
+    </script>
+    <script src="/tech-blog/assets/js/infinitescroll.js"></script> -->
+    <!-- /endif -->
+
+    
+
+
+    <!-- Add Google Analytics  -->
+    <!-- Google Analytics Tracking code -->
+ <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-69281367-1', 'auto');
+  ga('send', 'pageview');
+
+ </script>
+
+
+    <!-- The #block helper will pull in data from the #contentFor other template files. In this case, there's some JavaScript which we only want to use in post.hbs, but it needs to be included down here, after jQuery has already loaded. -->
+    
+    <script>
+
+// NOTE: Scroll performance is poor in Safari
+// - this appears to be due to the events firing much more slowly in Safari.
+//   Dropping the scroll event and using only a raf loop results in smoother
+//   scrolling but continuous processing even when not scrolling
+$(document).ready(function () {
+    // Start fitVids
+    var $postContent = $(".post-full-content");
+    $postContent.fitVids();
+    // End fitVids
+
+    var progressBar = document.querySelector('progress');
+    var header = document.querySelector('.floating-header');
+    var title = document.querySelector('.post-full-title');
+
+    var lastScrollY = window.scrollY;
+    var lastWindowHeight = window.innerHeight;
+    var lastDocumentHeight = $(document).height();
+    var ticking = false;
+
+    function onScroll() {
+        lastScrollY = window.scrollY;
+        requestTick();
+    }
+
+    function onResize() {
+        lastWindowHeight = window.innerHeight;
+        lastDocumentHeight = $(document).height();
+        requestTick();
+    }
+
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(update);
+        }
+        ticking = true;
+    }
+
+    function update() {
+        var trigger = title.getBoundingClientRect().top + window.scrollY;
+        var triggerOffset = title.offsetHeight + 35;
+        var progressMax = lastDocumentHeight - lastWindowHeight;
+
+        // show/hide floating header
+        if (lastScrollY >= trigger + triggerOffset) {
+            header.classList.add('floating-active');
+        } else {
+            header.classList.remove('floating-active');
+        }
+
+        progressBar.setAttribute('max', progressMax);
+        progressBar.setAttribute('value', lastScrollY);
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onResize, false);
+
+    update();
+});
+</script>
+
+    
+
+    <!-- Ghost outputs important scripts and data with this tag - it should always be the very last thing before the closing body tag -->
+    <!-- ghost_foot -->
+
+</body>
+
+</html>

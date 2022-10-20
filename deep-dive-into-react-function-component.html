@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Base Meta -->
+    <!-- dynamically fixing the title for tag/author pages -->
+
+
+
+    <title>React function component</title>
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.edited.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/syntax.css" />
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+    <style>
+        .hljs {
+            background: none;
+        }
+    </style>
+
+    <!--[if IE]>
+        <style>
+            p, ol, ul{
+                width: 100%;
+            }
+            blockquote{
+                width: 100%;
+            }
+        </style>
+    <![endif]-->
+
+    <!-- This tag outputs SEO meta+structured data and other important settings -->
+    <meta name="description"
+    content="" />
+<link rel="shortcut icon" href="/tech-blog/assets/images/supplies-logo-black.png" type="image/png" />
+<link rel="canonical"
+    href="/tech-blog/deep-dive-into-react-function-component" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+
+<!--title below is coming from _includes/dynamic_title-->
+<meta property="og:site_name" content="Supplies Tech Blog" />
+<meta property="og:type" content="website" />
+<meta property="og:title"
+    content="React function component" />
+<meta property="og:description"
+    content="Deep dive into React Function Components 들어가기 전에 스타트업에서 서비스(이하 프로덕트)을 개발하면서 가장 크게 느낀 점은 제한된 리소스를 최대한 활용해야하는 것이다. 제한된 리소스에는 사람, 돈, 그리고 시간이 있다. 최대한 활용이라는 건 최대의 프로덕트 임팩트를 의미한다. 결과적으로는 반드시 프로덕트가 좋아야하고 더하여 달성하는 과정에서 가장 효율적인 자원 할당을 판단하는 것도 상당히 중요하다." />
+<meta property="og:url"
+    content="/tech-blog/deep-dive-into-react-function-component" />
+<meta property="og:image"
+    content="/tech-blog/assets/images/react-function-component/function-component-sample.png" />
+<meta property="article:publisher" content="https://www.facebook.com/" />
+<meta property="article:author" content="https://www.facebook.com/" />
+<meta property="article:published_time"
+    content="2022-08-21T00:00:01+00:00" />
+<meta property="article:modified_time"
+    content="2022-08-21T00:00:01+00:00" />
+
+<!-- <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="React function component" />
+    <meta name="twitter:description" content="Deep dive into React Function Components 들어가기 전에 스타트업에서 서비스(이하 프로덕트)을 개발하면서 가장 크게 느낀 점은 제한된 리소스를 최대한 활용해야하는 것이다. 제한된 리소스에는 사람, 돈, 그리고 시간이 있다. 최대한 활용이라는 건 최대의 프로덕트 임팩트를 의미한다. 결과적으로는 반드시 프로덕트가 좋아야하고 더하여 달성하는 과정에서 가장 효율적인 자원 할당을 판단하는 것도 상당히 중요하다." />
+    <meta name="twitter:url" content="/tech-blog/" />
+    <meta name="twitter:image" content="/tech-blog/assets/images/react-function-component/function-component-sample.png" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Supplies Tech Blog" />
+    <meta name="twitter:site" content="@" />
+    <meta name="twitter:creator" content="@" /> -->
+<meta property="og:image:width" content="1400" />
+<meta property="og:image:height" content="933" />
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Website",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Supplies Tech Blog",
+        "logo": "/tech-blog/"
+    },
+    "url": "/tech-blog/deep-dive-into-react-function-component",
+    "image": {
+        "@type": "ImageObject",
+        "url": "/tech-blog/assets/images/react-function-component/function-component-sample.png",
+        "width": 2000,
+        "height": 666
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/tech-blog/deep-dive-into-react-function-component"
+    },
+    "description": "Deep dive into React Function Components 들어가기 전에 스타트업에서 서비스(이하 프로덕트)을 개발하면서 가장 크게 느낀 점은 제한된 리소스를 최대한 활용해야하는 것이다. 제한된 리소스에는 사람, 돈, 그리고 시간이 있다. 최대한 활용이라는 건 최대의 프로덕트 임팩트를 의미한다. 결과적으로는 반드시 프로덕트가 좋아야하고 더하여 달성하는 과정에서 가장 효율적인 자원 할당을 판단하는 것도 상당히 중요하다."
+}
+    </script>
+
+<!-- <script type="text/javascript" src="https://demo.ghost.io/public/ghost-sdk.min.js?v=724281a32e"></script>
+    <script type="text/javascript">
+    ghost.init({
+    	clientId: "ghost-frontend",
+    	clientSecret: "f84a07a72b17"
+    });
+    </script> -->
+
+<meta name="generator" content="Jekyll 3.6.2" />
+<link rel="alternate" type="application/rss+xml"
+    title="React function component"
+    href="/tech-blog/feed.xml" />
+
+</head>
+
+<body
+    class="post-template">
+
+    <div class="site-wrapper">
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The tag above means: insert everything in this file
+into the {body} of the default.hbs template -->
+
+<header class="site-header outer">
+    <div class="inner">
+        <nav class="site-nav">
+    <div class="site-nav-left">
+        
+            
+                <a class="site-nav-logo" href="/tech-blog/">Supplies Tech Blog</a>
+            
+        
+        
+            <ul class="nav" role="menu">
+    <!-- <li class="nav-home" role="menuitem"><a href="/tech-blog/">Home</a></li> -->
+    <!-- <li class="nav-about" role="menuitem"><a href="/tech-blog/about/">About</a></li>
+    <li class="nav-getting-started" role="menuitem"><a href="/tech-blog/tag/getting-started/">Getting Started</a></li>
+    <li class="nav-try-ghost" role="menuitem"><a href="https://ghost.org">Try Ghost</a></li> -->
+</ul>
+        
+    </div>
+    <div class="site-nav-right">
+        <div class="social-links">
+            
+            
+        </div>
+        
+    </div>
+</nav>
+
+    </div>
+</header>
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<main id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+
+        <article class="post-full  post ">
+
+            <header class="post-full-header">
+                <section class="post-full-meta">
+                    <time class="post-full-meta-date" datetime="21 August 2022">21 August 2022</time>
+                    
+                </section>
+                <h1 class="post-full-title">React function component</h1>
+            </header>
+
+            
+            <figure class="post-full-image" style="background-image: url(/tech-blog/assets/images/react-function-component/function-component-sample.png)">
+            </figure>
+            
+
+            <section class="post-full-content">
+                <div class="kg-card-markdown">
+                    <h1 id="deep-dive-into-react-function-components">Deep dive into React Function Components</h1>
+
+<h2 id="들어가기-전에">들어가기 전에</h2>
+
+<p>스타트업에서 서비스(이하 프로덕트)을 개발하면서 가장 크게 느낀 점은 <code class="language-plaintext highlighter-rouge">제한된 리소스를 최대한 활용</code>해야하는 것이다. 제한된 리소스에는 사람, 돈, 그리고 시간이 있다. 최대한 활용이라는 건 최대의 프로덕트 임팩트를 의미한다. 결과적으로는 반드시 프로덕트가 좋아야하고 더하여 달성하는 과정에서 가장 효율적인 자원 할당을 판단하는 것도 상당히 중요하다. 그리고 그 판단은 회사의 사정에 따라 실시간으로 바뀌기도 한다.</p>
+
+<aside>
+💡 키워드 = 한정된 리소스, 최대 임팩트
+
+</aside>
+
+<h2 id="react-와-react-native">React 와 React Native</h2>
+
+<h3 id="nodejs">node.js</h3>
+
+<p>스타트업은 태생적으로 한정된 자원을 가진다. 사람, 돈, 시간이라는 모든 부분에서 효율적으로 사용되지 않으면 살아남을 수가 없다. node.js 스택은 그래서 스타트업에서 사용되는 기본적인 언어가 아닌가 싶다. node.js는 태생이 웹 애플리케이션을 만드는 언어이다. 그리고 스타트업에서는 어떻게든 사용자가 사용할 수 있는 형태로 만들긴 해야 하니 생존을 위해 풀스택 개발자 1명이나 1~2명의 개발자(최근 개발자 몸값이 천정부지로 솟구치고 있으니ㅜㅜ)로 애플리케이션을 만든다. 백엔드 개발자가 언제든지 프론트엔드 개발도 볼 줄은 아는 상황이 생길 수도 있으니 개발 언어를 맞추는건 괜찮은 생존 방법이겠죠.</p>
+
+<h3 id="react-react-native">React, React Native</h3>
+
+<p>node.js로 선택하니 그 다음은 프론트엔드 프레임워크를 선택해야하는데요. 프론트엔드 웹 프레임워크는 몇가지 선택지가 있다. React, Vue 정도가 있는데 React 가 그냥 더 좋았다. 그리고 우리가 만들 서비스는 네이티브 개발도 필요했고 React Native와 Flutter가 선택지였다. 구글 트렌드를 쳐봐도 구글링을 해봐도 flutter가 낫다(최소 이제 flutter ≥ RN)는 블로그 글들이 많아서 선택을 주저하기는 했지만, 생존을 위해 RN으로 강행했다. JSI, RN 0.68 에서 Hermes 엔진 등으로 퍼포먼스 이슈는 솔직히 거의 없다고 봐도 될 것 같다. 또, 프론트엔드 개발자를 채용할때도 dart 쓸 줄 아는 사람이 있긴 있을까 싶었다. 그래서 결국 React, React Native로 결정했다. (잘한 결정인것 같다.)</p>
+
+<h2 id="function-components-그리고-hooks">Function components 그리고 Hooks</h2>
+
+<p>2019년에 React 16.8이 나오면서 Hooks가 소개되었다. Hooks가 나오면서부터 function component가 기본 component가 되었다. 그럼 왜 React에서 function components가 주류가 되었을까?</p>
+
+<aside>
+💡 참고 : [React 16.8](https://reactjs.org/blog/2019/02/06/react-v16.8.0.html) 공식블로그 바로가기
+
+</aside>
+
+<h3 id="class-component-vs-function-components">Class component vs Function Components</h3>
+
+<p><img src="./assets/images/react-function-component/class-component-sample.png" alt="Class Component" />
+<img src="./assets/images/react-function-component/function-component-sample.png" alt="Function Component" /></p>
+
+<p>Class component와 function component의 가장 기본적인 모습이다. 두 components의 확연한 차이는 render() 함수가 있고 없고가 가장 다른 것 처럼 보인다.</p>
+
+<p>Docs만 읽어보면 class component가 functional component에 비해서 더 좋을 것만 같다. 왜냐하면 Class component는 state와 lifecycle의 기능을 갖기 때문이다. 그런데 이 기능들은 이제 더 이상 Class component에서만 사용할 수 있는 것이 아니라, Hooks를 통해 functional component에서도 가능하게 되었다. 심지어 더 간단한 코드로 구현이 가능해졌다.</p>
+
+<ul>
+  <li>state, this 기능 → useState</li>
+  <li>lifecycle 기능 → useEffect</li>
+</ul>
+
+<p>useState가 뭔지는 여기서는 더 설명하지 않겠다.</p>
+
+<h3 id="class-component의-의도치-않은-버그">Class component의 의도치 않은 버그</h3>
+
+<p>아무리 자료를 찾아봐도 성능에 대한 이점은 function component와 class component 어느 한쪽의 손을 들어주기가 어렵다. 그러면 도대체 Function component를 사용하면 코드가 더 간단해지는 것 말고 또 무슨 이점이 있을까? React의 아버지라 부를 수 있는 <a href="https://overreacted.io/how-are-function-components-different-from-classes/">Dan Abramov의 블로그</a>를 살펴보면 class component의 문제점을 알 수 있다.</p>
+
+<p>바로 “function component는 렌더링된 값을 갖고” 있다는 것이다. 이게 무슨말이지? 상태일테니 예시를 하나 들어보자.</p>
+
+<p><img src="./assets/images/react-function-component/class-component-sample2.png" alt="Untitled" />
+<img src="./assets/images/react-function-component/function-component-sample2.png" alt="Untitled" /></p>
+
+<p>프로필 페이지 컴포넌트는 user 이름을 props로 전달 받는다. 이 컴포넌트에서 팔로우 버튼을 누르면 3초 후 alert가 뜨는 component이다. 그럼 이제 JD를 팔로우해보자. 3초 후에 “Followed JD”가 뜰 것이다. 여기까지 굿!</p>
+
+<p>그럼 이런 경우는 어떨까? JD props로 내려준 상황에서 팔로우를 누르고 다시 Dean으로 props를 내려준다면? 이해를 돕기 위해 아래 그림을 먼저 보자.</p>
+
+<p><img src="https://overreacted.io/386a449110202d5140d67336a0ade5a0/bug.gif" alt="https://overreacted.io/386a449110202d5140d67336a0ade5a0/bug.gif" /></p>
+
+<p>그림에서 보면 Dan을 팔로우했음에도 불구하고 “Followed Sophie”가 화면에서 보인다. function component는 렌더링된 값을 갖고 있기 때문에 class component에서 생긴 문제가 발생하지 않는다. 물론 Class component도 이 문제를 해결할수는 있다(해결 방법은 <a href="https://overreacted.io/how-are-function-components-different-from-classes/">여기서</a>). 하지만 굳이 이렇게 해결하기보다 function component를 쓰면 고민할 것도 없다.</p>
+
+<h3 id="lifecycle-useeffect로-구현하기">Lifecycle useEffect로 구현하기</h3>
+
+<p>그럼 이제 function component로 코드를 심플하게 구현하게 되었고, component lifecycle은 어떻게 해결할까? useEffect로 아주 쉽게 해결할 수 있다.</p>
+
+<ol>
+  <li>
+    <p>componentDidMount()</p>
+
+    <div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">useEffect</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">componentDidMount</span><span class="dl">"</span><span class="p">);</span>
+<span class="p">},</span> <span class="p">[]);</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>componentDidUpdate(), (getDerivedStateFromProps())</p>
+
+    <div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">useEffect</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">componentDidUpdate</span><span class="dl">"</span><span class="p">);</span>
+<span class="p">},</span> <span class="p">[</span><span class="nx">props</span><span class="p">,</span> <span class="nx">orState</span><span class="p">]);</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>componentWillUnmount()</p>
+
+    <div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">useEffect</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">componentWillUnmount</span><span class="dl">"</span><span class="p">);</span>
+  <span class="p">};</span>
+<span class="p">},</span> <span class="p">[</span><span class="nx">props</span><span class="p">,</span> <span class="nx">orState</span><span class="p">]);</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>componentDidMount(), componentDidUpdate(), componetWillUnmount(), (getDerivedStateFromProps())</p>
+
+    <div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">useEffect</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">componentDidMount, componentDidUpdate, componetWillUnmount</span><span class="dl">"</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>1과2는 아주 자주 사용해봤을 것이고, 3번은 거의 사용할 일은 없지만 필요할 때가 있으니 숙지해놓으면 좋을 것이다!</p>
+
+<h2 id="마치며">마치며</h2>
+
+<p>하루에도 수많은 스타트업들(그리고 프로젝트 TF)에서 개발 스택을 무엇으로 할 지 결정하느라 머리가 아플 것 같다. 우리 팀은 한정된 자원을 효율적으로 관리하기 위해, 앞으로 닥칠 리스크를 최대한 헷징하기 위해 React, React native를 개발 스택으로 선택했다. 그리고 그 결정은 괜찮았던 것 같다.</p>
+
+<p>React를 아무 생각없이 쓰다보면 저와같이 어느 순간 function component를 쓰고 있을 것이다. 그런데 이유는 알아야 function component를 더 잘 활용할 것 같았다. 굳이 class component를 function component로 바꿀 필요는 없겠지만, 새로 시작한다면 function component를 사용해보자.</p>
+
+<p>서플라이스는 피트니스를 혁신하고 있습니다. 저희 회사에 관심이 있는 능력자분들은 언제든지 아래 메일로 연락주세요.</p>
+
+<ul>
+  <li>jd@suppliesfitness.com</li>
+  <li><a href="https://supplies.notion.site/17d545a40be3463784f3f4861a923c64">채용 공고 보러가기</a></li>
+</ul>
+
+<h3 id="서플라이스-브랜드들">서플라이스 브랜드들</h3>
+<ul>
+  <li><a href="https://gymboxx.co.kr/">짐박스 피트니스</a></li>
+  <li><a href="http://prepperskorea.com/">프레퍼스 다이어트 푸드</a></li>
+  <li><a href="https://suppliesfitness.com/">서플라이스 온라인 쇼핑몰</a></li>
+</ul>
+
+                </div>
+            </section>
+
+            <!-- Email subscribe form at the bottom of the page -->
+            
+
+            <footer class="post-full-footer">
+                <!-- Everything inside the #author tags pulls data from the author -->
+                <!-- #author-->
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                <!-- /author  -->
+            </footer>
+
+            <!-- If you use Disqus comments, just uncomment this block.
+            The only thing you need to change is "test-apkdzgmqhj" - which
+            should be replaced with your own Disqus site-id. -->
+            
+
+        </article>
+
+    </div>
+</main>
+
+<!-- Links to Previous/Next posts -->
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+
+            <!-- If there's a next post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/tech-blog/React-Toolkit-Auto-Refetching">
+                <div class="post-card-image" style="background-image: url(/tech-blog/assets/images/React-Toolkit-Auto-Refetching/cover.png)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/tech-blog/React-Toolkit-Auto-Refetching">
+                <header class="post-card-header">
+                    
+
+                    <h2 class="post-card-title">짐박스 CRM에서 Auto-Refetching 구현하기</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>짐박스 CRM에서 Auto-Refetching 구현하기
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                        
+                        <img class="author-profile-image" src="/tech-blog/assets/images/authors/tony.jpeg" alt="Tony" />
+                        
+                        <span class="post-card-author">
+                            <a href="/tech-blog/author/Tony/">Tony</a>
+                        </span>
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      5 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+            <!-- If there's a previous post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/tech-blog/aws-sns-push">
+                <div class="post-card-image" style="background-image: url(/tech-blog/assets/images/aws-sns-push/new_architecture.png)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/tech-blog/aws-sns-push">
+                <header class="post-card-header">
+                    
+
+                    <h2 class="post-card-title">SQS와 Lamdba로 푸시 발송 로직 개선하기</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다.
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                
+                    
+                        
+                        <img class="author-profile-image" src="/tech-blog/assets/images/authors/dean.jpg" alt="Dean" />
+                        
+                        <span class="post-card-author">
+                            <a href="/tech-blog/author/Dean/">Dean</a>
+                        </span>
+                    
+                
+                    
+                
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      2 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+        </div>
+    </div>
+</aside>
+
+<!-- Floating header which appears on-scroll, included from includes/floating-header.hbs -->
+<div class="floating-header">
+    <div class="floating-header-logo">
+        <a href="/tech-blog/">
+            
+            <img src="/tech-blog/assets/images/supplies-logo-black.png" alt="Supplies Tech Blog icon" />
+            
+            <span>Supplies Tech Blog</span>
+        </a>
+    </div>
+    <span class="floating-header-divider">&mdash;</span>
+    <div class="floating-header-title">React function component</div>
+    <!-- <div class="floating-header-share">
+        <div class="floating-header-share-label">Share this <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M7.5 15.5V4a1.5 1.5 0 1 1 3 0v4.5h2a1 1 0 0 1 1 1h2a1 1 0 0 1 1 1H18a1.5 1.5 0 0 1 1.5 1.5v3.099c0 .929-.13 1.854-.385 2.748L17.5 23.5h-9c-1.5-2-5.417-8.673-5.417-8.673a1.2 1.2 0 0 1 1.76-1.605L7.5 15.5zm6-6v2m-3-3.5v3.5m6-1v2"/>
+</svg>
+</div>
+        <a class="floating-header-share-tw" href="https://twitter.com/share?text=React+function+component&amp;url=https://suppliesfitness.github.io/tech-blog/deep-dive-into-react-function-component"
+            onclick="window.open(this.href, 'share-twitter', 'width=550,height=235');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M30.063 7.313c-.813 1.125-1.75 2.125-2.875 2.938v.75c0 1.563-.188 3.125-.688 4.625a15.088 15.088 0 0 1-2.063 4.438c-.875 1.438-2 2.688-3.25 3.813a15.015 15.015 0 0 1-4.625 2.563c-1.813.688-3.75 1-5.75 1-3.25 0-6.188-.875-8.875-2.625.438.063.875.125 1.375.125 2.688 0 5.063-.875 7.188-2.5-1.25 0-2.375-.375-3.375-1.125s-1.688-1.688-2.063-2.875c.438.063.813.125 1.125.125.5 0 1-.063 1.5-.25-1.313-.25-2.438-.938-3.313-1.938a5.673 5.673 0 0 1-1.313-3.688v-.063c.813.438 1.688.688 2.625.688a5.228 5.228 0 0 1-1.875-2c-.5-.875-.688-1.813-.688-2.75 0-1.063.25-2.063.75-2.938 1.438 1.75 3.188 3.188 5.25 4.25s4.313 1.688 6.688 1.813a5.579 5.579 0 0 1 1.5-5.438c1.125-1.125 2.5-1.688 4.125-1.688s3.063.625 4.188 1.813a11.48 11.48 0 0 0 3.688-1.375c-.438 1.375-1.313 2.438-2.563 3.188 1.125-.125 2.188-.438 3.313-.875z"/></svg>
+
+        </a>
+        <a class="floating-header-share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https://suppliesfitness.github.io/tech-blog/deep-dive-into-react-function-component"
+            onclick="window.open(this.href, 'share-facebook','width=580,height=296');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M19 6h5V0h-5c-3.86 0-7 3.14-7 7v3H8v6h4v16h6V16h5l1-6h-6V7c0-.542.458-1 1-1z"/></svg>
+
+        </a>
+    </div> -->
+    <progress class="progress" value="0">
+        <div class="progress-container">
+            <span class="progress-bar"></span>
+        </div>
+    </progress>
+</div>
+
+<!-- /post -->
+
+<!-- The #contentFor helper here will send everything inside it up to the matching #block helper found in default.hbs -->
+
+
+        <!-- Previous/next page links - displayed on every page -->
+        
+
+        <!-- The footer at the very bottom of the screen -->
+        <footer class="site-footer outer">
+            <div class="site-footer-content inner">
+                <section class="copyright"><a href="/tech-blog/">Supplies Tech Blog</a> &copy; 2022</section>
+                <!-- <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> &
+                    <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a> using
+                    <a href="https://github.com/jekyllt/jasper2" target="_blank" rel="noopener">Jasper2</a></section>
+                <nav class="site-footer-nav">
+                    <a href="/tech-blog/">Latest Posts</a>
+                    
+                    
+                    <a href="https://ghost.org" target="_blank" rel="noopener">Ghost</a> -->
+                </nav>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- The big email subscribe modal content -->
+    
+
+    <!-- highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.10.0/components/prism-abap.min.js"></script>
+    <script>$(document).ready(function () {
+            $('pre code').each(function (i, block) {
+                hljs.highlightBlock(block);
+            });
+        });</script>
+
+    <!-- jQuery + Fitvids, which makes all video embeds responsive -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous">
+        </script>
+    <script type="text/javascript" src="/tech-blog/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="https://demo.ghost.io/assets/js/jquery.fitvids.js?v=724281a32e"></script>
+
+
+    <!-- Paginator increased to "infinit" in _config.yml -->
+    <!-- if paginator.posts  -->
+    <!-- <script>
+        var maxPages = parseInt('');
+    </script>
+    <script src="/tech-blog/assets/js/infinitescroll.js"></script> -->
+    <!-- /endif -->
+
+    
+
+
+    <!-- Add Google Analytics  -->
+    <!-- Google Analytics Tracking code -->
+ <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-69281367-1', 'auto');
+  ga('send', 'pageview');
+
+ </script>
+
+
+    <!-- The #block helper will pull in data from the #contentFor other template files. In this case, there's some JavaScript which we only want to use in post.hbs, but it needs to be included down here, after jQuery has already loaded. -->
+    
+    <script>
+
+// NOTE: Scroll performance is poor in Safari
+// - this appears to be due to the events firing much more slowly in Safari.
+//   Dropping the scroll event and using only a raf loop results in smoother
+//   scrolling but continuous processing even when not scrolling
+$(document).ready(function () {
+    // Start fitVids
+    var $postContent = $(".post-full-content");
+    $postContent.fitVids();
+    // End fitVids
+
+    var progressBar = document.querySelector('progress');
+    var header = document.querySelector('.floating-header');
+    var title = document.querySelector('.post-full-title');
+
+    var lastScrollY = window.scrollY;
+    var lastWindowHeight = window.innerHeight;
+    var lastDocumentHeight = $(document).height();
+    var ticking = false;
+
+    function onScroll() {
+        lastScrollY = window.scrollY;
+        requestTick();
+    }
+
+    function onResize() {
+        lastWindowHeight = window.innerHeight;
+        lastDocumentHeight = $(document).height();
+        requestTick();
+    }
+
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(update);
+        }
+        ticking = true;
+    }
+
+    function update() {
+        var trigger = title.getBoundingClientRect().top + window.scrollY;
+        var triggerOffset = title.offsetHeight + 35;
+        var progressMax = lastDocumentHeight - lastWindowHeight;
+
+        // show/hide floating header
+        if (lastScrollY >= trigger + triggerOffset) {
+            header.classList.add('floating-active');
+        } else {
+            header.classList.remove('floating-active');
+        }
+
+        progressBar.setAttribute('max', progressMax);
+        progressBar.setAttribute('value', lastScrollY);
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onResize, false);
+
+    update();
+});
+</script>
+
+    
+
+    <!-- Ghost outputs important scripts and data with this tag - it should always be the very last thing before the closing body tag -->
+    <!-- ghost_foot -->
+
+</body>
+
+</html>

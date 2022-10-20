@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Base Meta -->
+    <!-- dynamically fixing the title for tag/author pages -->
+
+
+
+    <title>Azure Face API 사용기</title>
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.edited.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/syntax.css" />
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+    <style>
+        .hljs {
+            background: none;
+        }
+    </style>
+
+    <!--[if IE]>
+        <style>
+            p, ol, ul{
+                width: 100%;
+            }
+            blockquote{
+                width: 100%;
+            }
+        </style>
+    <![endif]-->
+
+    <!-- This tag outputs SEO meta+structured data and other important settings -->
+    <meta name="description"
+    content="" />
+<link rel="shortcut icon" href="/tech-blog/assets/images/supplies-logo-black.png" type="image/png" />
+<link rel="canonical"
+    href="/tech-blog/azure-face-api" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+
+<!--title below is coming from _includes/dynamic_title-->
+<meta property="og:site_name" content="Supplies Tech Blog" />
+<meta property="og:type" content="website" />
+<meta property="og:title"
+    content="Azure Face API 사용기" />
+<meta property="og:description"
+    content="Gymboxx 안면 출입 서비스 안녕하세요. 서플라이스 Tech팀 백엔드 개발자 피수연입니다. 저희 헬스장 Gymboxx의 출입서버에서는 앱을 통한 바코드 인식과 안면인식을 통한 출입 서비스를 운영하고 있습니다. 짐박스 얼굴 출입 서비스는 앱을 켤 필요 없이 오직 안면 인식만으로 출입을 가능하게 하고있습니다. 따라서 회원들이 따로 휴대폰을 들고 다니지 않아도 편하게 헬스장을 출입할 수 있으며" />
+<meta property="og:url"
+    content="/tech-blog/azure-face-api" />
+<meta property="og:image"
+    content="/tech-blog/assets/images/azure-face-api/face_api.jpeg" />
+<meta property="article:publisher" content="https://www.facebook.com/" />
+<meta property="article:author" content="https://www.facebook.com/" />
+<meta property="article:published_time"
+    content="2022-08-27T15:00:00+00:00" />
+<meta property="article:modified_time"
+    content="2022-08-27T15:00:00+00:00" />
+
+<!-- <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Azure Face API 사용기" />
+    <meta name="twitter:description" content="Gymboxx 안면 출입 서비스 안녕하세요. 서플라이스 Tech팀 백엔드 개발자 피수연입니다. 저희 헬스장 Gymboxx의 출입서버에서는 앱을 통한 바코드 인식과 안면인식을 통한 출입 서비스를 운영하고 있습니다. 짐박스 얼굴 출입 서비스는 앱을 켤 필요 없이 오직 안면 인식만으로 출입을 가능하게 하고있습니다. 따라서 회원들이 따로 휴대폰을 들고 다니지 않아도 편하게 헬스장을 출입할 수 있으며" />
+    <meta name="twitter:url" content="/tech-blog/" />
+    <meta name="twitter:image" content="/tech-blog/assets/images/azure-face-api/face_api.jpeg" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Supplies Tech Blog" />
+    <meta name="twitter:site" content="@" />
+    <meta name="twitter:creator" content="@" /> -->
+<meta property="og:image:width" content="1400" />
+<meta property="og:image:height" content="933" />
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Website",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Supplies Tech Blog",
+        "logo": "/tech-blog/"
+    },
+    "url": "/tech-blog/azure-face-api",
+    "image": {
+        "@type": "ImageObject",
+        "url": "/tech-blog/assets/images/azure-face-api/face_api.jpeg",
+        "width": 2000,
+        "height": 666
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/tech-blog/azure-face-api"
+    },
+    "description": "Gymboxx 안면 출입 서비스 안녕하세요. 서플라이스 Tech팀 백엔드 개발자 피수연입니다. 저희 헬스장 Gymboxx의 출입서버에서는 앱을 통한 바코드 인식과 안면인식을 통한 출입 서비스를 운영하고 있습니다. 짐박스 얼굴 출입 서비스는 앱을 켤 필요 없이 오직 안면 인식만으로 출입을 가능하게 하고있습니다. 따라서 회원들이 따로 휴대폰을 들고 다니지 않아도 편하게 헬스장을 출입할 수 있으며"
+}
+    </script>
+
+<!-- <script type="text/javascript" src="https://demo.ghost.io/public/ghost-sdk.min.js?v=724281a32e"></script>
+    <script type="text/javascript">
+    ghost.init({
+    	clientId: "ghost-frontend",
+    	clientSecret: "f84a07a72b17"
+    });
+    </script> -->
+
+<meta name="generator" content="Jekyll 3.6.2" />
+<link rel="alternate" type="application/rss+xml"
+    title="Azure Face API 사용기"
+    href="/tech-blog/feed.xml" />
+
+</head>
+
+<body
+    class="post-template">
+
+    <div class="site-wrapper">
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The tag above means: insert everything in this file
+into the {body} of the default.hbs template -->
+
+<header class="site-header outer">
+    <div class="inner">
+        <nav class="site-nav">
+    <div class="site-nav-left">
+        
+            
+                <a class="site-nav-logo" href="/tech-blog/">Supplies Tech Blog</a>
+            
+        
+        
+            <ul class="nav" role="menu">
+    <!-- <li class="nav-home" role="menuitem"><a href="/tech-blog/">Home</a></li> -->
+    <!-- <li class="nav-about" role="menuitem"><a href="/tech-blog/about/">About</a></li>
+    <li class="nav-getting-started" role="menuitem"><a href="/tech-blog/tag/getting-started/">Getting Started</a></li>
+    <li class="nav-try-ghost" role="menuitem"><a href="https://ghost.org">Try Ghost</a></li> -->
+</ul>
+        
+    </div>
+    <div class="site-nav-right">
+        <div class="social-links">
+            
+            
+        </div>
+        
+    </div>
+</nav>
+
+    </div>
+</header>
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<main id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+
+        <article class="post-full  post ">
+
+            <header class="post-full-header">
+                <section class="post-full-meta">
+                    <time class="post-full-meta-date" datetime="27 August 2022">27 August 2022</time>
+                    
+                </section>
+                <h1 class="post-full-title">Azure Face API 사용기</h1>
+            </header>
+
+            
+            <figure class="post-full-image" style="background-image: url(/tech-blog/assets/images/azure-face-api/face_api.jpeg)">
+            </figure>
+            
+
+            <section class="post-full-content">
+                <div class="kg-card-markdown">
+                    <h2 id="gymboxx-안면-출입-서비스">Gymboxx 안면 출입 서비스</h2>
+<p><br /></p>
+
+<p>안녕하세요. 서플라이스 Tech팀 백엔드 개발자 피수연입니다.</p>
+
+<p>저희 헬스장 Gymboxx의 출입서버에서는 앱을 통한 바코드 인식과 안면인식을 통한 출입 서비스를 운영하고 있습니다.</p>
+
+<p>짐박스 얼굴 출입 서비스는 앱을 켤 필요 없이 오직 안면 인식만으로 출입을 가능하게 하고있습니다. 따라서 회원들이 따로 휴대폰을 들고 다니지 않아도 편하게 헬스장을 출입할 수 있으며 회원들의 무단 출입을 막을 수도 있습니다.</p>
+
+<p>얼굴 출입을 하기 위해서 먼저 회원의 얼굴을 사진을 찍어 등록합니다. 등록할 때, 회원의 얼굴 이미지에서 얼굴 특징을 감지하고 분석하여 데이터를 만든 뒤, 앞으로 회원이 출석 할 때 마다 저장된 회원 얼굴 데이터와 비교 후 동일한 얼굴로 인식이 되어야만 출입을 허가하고 있습니다.</p>
+
+<p>이미지에서 얼굴을 감지하고 분석하기 위한 도구로 시중에 많은 Face Recognition API가 있습니다. 그 중에서 저희는 Microsoft Azure Cognitive services의 Face API를 사용하였습니다.</p>
+
+<p>Azure Face API는 이미지에서 얼굴을 감지하고 분석하는 API입니다. 안면 인식을 통해 성별, 나이, 얼굴 표정을 통한 감정까지 인식할 수 있습니다. 또한 마스크 착용 시에도 얼굴을 감지할 수 있습니다.</p>
+
+<p>Azure Face API에 대한 설명은 간단하게 하고 사용기를 적어보겠습니다.</p>
+
+<p>더 자세한 설명은 아래 링크에서 확인할 수 있습니다.</p>
+
+<p><a href="https://azure.microsoft.com/ko-kr/services/cognitive-services/face/#overview">Face API: 이미지에서 얼굴을 분석하는 AI 서비스</a>
+<br /></p>
+<h2 id="azure-face-api-사용기">Azure Face API 사용기</h2>
+<p><br />
+Azure Face API의 간단한 사용기만 언급할 것이므로 자세한 사용방법은 아래 링크에서 확인할 수 있습니다.</p>
+
+<p><a href="https://docs.microsoft.com/ko-kr/azure/cognitive-services/computer-vision/quickstarts-sdk/identity-client-library?pivots=programming-language-javascript&amp;tabs=visual-studio">빠른 시작: Face 서비스 사용</a></p>
+
+<p>먼저 얼굴을 등록합니다. 얼굴을 등록할때, Azure 클라우드 내 person group이란 것을 만들고 그 안에 감지된 얼굴을 등록하게 됩니다. 인식된 얼굴은 person group내 person으로 저장되고 고유한 personId를 부여받게 됩니다. 그다음 azure가 부여받은 personId를 person group내에서 얼굴을 식별할 수 있도록 학습시킵니다. 학습은 비동기적으로 진행됩니다.</p>
+
+<p>테스트를 위해 아래 사진으로 person을 등록해 보겠습니다.</p>
+
+<p><img src="assets/images/azure-face-api/ariana.jpeg" alt="등록 사진" /></p>
+
+<p>얼굴을 등록하면 다음과 같은 personId를 부여받은 것을 확인할 수 있습니다.</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="na">personId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">8baca216-cc92-4dca-af37-50f74586c5e1</span><span class="dl">'</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>azure에 등록된 person list에서도 확인해 볼 수도 있습니다.</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="dl">"</span><span class="s2">name</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Ariana Grande</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">personId</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">8baca216-cc92-4dca-af37-50f74586c5e1</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">persistedFaceIds</span><span class="dl">"</span><span class="p">:</span> <span class="p">[</span>
+      <span class="dl">"</span><span class="s2">ecb30b20-faa7-4796-9fb2-6b0d352ea7fc</span><span class="dl">"</span>
+    <span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<p>여기서 persistedFaceIds란 등록된 얼굴을 말하는데,  방금 하나를 등록했기 때문에 하나만 있는 것을 볼 수 있습니다. 같은 person에 대해서 얼굴을 추가적으로 등록할 수도 있습니다.</p>
+
+<p>이제 얼굴을 추가했으니 얼굴 출입을 해보겠습니다. 얼굴출입은 출입할때 얼굴을 분석하여 faceId를 검출하고 Azure에 저장된 person group내에 해당 faceId와 일치하는 person을 식별하면 출입을 허용하도록 하였습니다.</p>
+
+<p>동일인물의 다른사진으로 얼굴 출입을 해보겠습니다.</p>
+
+<p><img src="assets/images/azure-face-api/ari2.png" alt="출입 사진1" /></p>
+
+<p>얼굴을 분석했을때 다음과 같은 faceId를 얻을 수 있었습니다.</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="na">faceId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">170970ee-db23-40fb-b7ef-78d4d7fe4614</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">recognitionModel</span><span class="p">:</span> <span class="dl">'</span><span class="s1">recognition_01</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">faceRectangle</span><span class="p">:</span> <span class="p">{</span> <span class="na">width</span><span class="p">:</span> <span class="mi">179</span><span class="p">,</span> <span class="na">height</span><span class="p">:</span> <span class="mi">237</span><span class="p">,</span> <span class="na">left</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span> <span class="na">top</span><span class="p">:</span> <span class="mi">51</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<p>그리고 해당 faceId를 person group내에 person인지 indentify를 해보았을 경우</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="na">faceId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">170970ee-db23-40fb-b7ef-78d4d7fe4614</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">candidates</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="na">personId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">8baca216-cc92-4dca-af37-50f74586c5e1</span><span class="dl">'</span><span class="p">,</span>
+      <span class="na">confidence</span><span class="p">:</span> <span class="mf">0.93872</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>얼굴 등록했을때 받은 personId와 0.93의 신뢰도로 동일한 인물임을 식별할 수 있었습니다. 이때 confidence는 해당 얼굴이 등록된 personId와 얼마나 비슷한지를 의미합니다.</p>
+
+<p>마스크를 착용한 얼굴도 동일인물로 식별할 수 있을지 테스트를 해보았습니다.</p>
+
+<p><img src="assets/images/azure-face-api/ariana_mask2.png" alt="출입 사진2" /></p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="na">faceId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">f8d10b65-6157-4cbd-b6ce-5e188df6a753</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">candidates</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="na">personId</span><span class="p">:</span> <span class="dl">'</span><span class="s1">8baca216-cc92-4dca-af37-50f74586c5e1</span><span class="dl">'</span><span class="p">,</span>
+      <span class="na">confidence</span><span class="p">:</span> <span class="mf">0.74237</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>화장을 하지않고, 마크스를 착용한 얼굴임에도 0.74의 신뢰도로 동일인물로 식별하는 것을 확인할 수 있습니다.
+<br /></p>
+<h3 id="다른-face-api는-어떨까">다른 Face API는 어떨까?</h3>
+<p><br />
+Face recogition API으로 유명한 Luxand의 Face API를 사용해보았습니다. Luxand는 Azure와 마찬가지로 다양한 언어를 지원하고 AWS를 기반한 클라우드 서비스입니다. Luxand에서는 Dashboard를 제공해주어서 직접 코드를 작성하지 않아도 쉽게 테스트 해볼 수 있었습니다.</p>
+
+<p><a href="https://luxand.cloud/">Luxand</a></p>
+
+<p>방법은 Azure에서와 같았습니다. 먼저 person을 등록하고 person에 face를 등록하는 방식입니다.</p>
+
+<p>Azure Face api와의 신뢰도 비교를 위해 동일 사진으로 테스트를 해보았습니다.</p>
+
+<p>같은 사진으로 person을 등록해보겠습니다.</p>
+
+<p><img src="assets/images/azure-face-api/ariana.jpeg" alt="등록 사진" /></p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="dl">"</span><span class="s2">status</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">success</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">uuid</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">18eb51e9-26a2-11ed-b979-0242ac120002</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">id</span><span class="dl">"</span><span class="p">:</span> <span class="mi">292784</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">message</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Successfully created</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">url</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">https://faces.nyc3.digitaloceanspaces.com/1904d48b-26a2-11ed-b979-0242ac120002.jpg</span><span class="dl">"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>person을 등록하고 나면 성공적으로 id를 받게 됩니다. Azure Face api와 마찬가지로 해당 id에 추가로 얼굴을 등록할 수 있습니다.</p>
+
+<p>이제 얼굴 인식을 해보겠습니다.</p>
+
+<p><img src="assets/images/azure-face-api/ari2.png" alt="출입 사진1" /></p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="dl">"</span><span class="s2">id</span><span class="dl">"</span><span class="p">:</span> <span class="mi">292784</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">name</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Ariana Grande</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">probability</span><span class="dl">"</span><span class="p">:</span> <span class="mf">0.9995379447937012</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">rectangle</span><span class="dl">"</span><span class="p">:</span> <span class="p">{</span>
+      <span class="dl">"</span><span class="s2">left</span><span class="dl">"</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span>
+      <span class="dl">"</span><span class="s2">top</span><span class="dl">"</span><span class="p">:</span> <span class="mi">56</span><span class="p">,</span>
+      <span class="dl">"</span><span class="s2">right</span><span class="dl">"</span><span class="p">:</span> <span class="mi">392</span><span class="p">,</span>
+      <span class="dl">"</span><span class="s2">bottom</span><span class="dl">"</span><span class="p">:</span> <span class="mi">400</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<p>0.99의 신뢰도로 동일인물임을 식별하고 있습니다. Azure Face api보다 높은 신뢰도를 받았습니다.</p>
+
+<p><img src="assets/images/azure-face-api/ariana_mask2.png" alt="출입 사진2" /></p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="dl">"</span><span class="s2">id</span><span class="dl">"</span><span class="p">:</span> <span class="mi">292784</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">name</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Ariana Grande</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">probability</span><span class="dl">"</span><span class="p">:</span> <span class="mf">0.9433196783065796</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">rectangle</span><span class="dl">"</span><span class="p">:</span> <span class="p">{</span>
+      <span class="dl">"</span><span class="s2">left</span><span class="dl">"</span><span class="p">:</span> <span class="mi">97</span><span class="p">,</span>
+      <span class="dl">"</span><span class="s2">top</span><span class="dl">"</span><span class="p">:</span> <span class="mi">87</span><span class="p">,</span>
+      <span class="dl">"</span><span class="s2">right</span><span class="dl">"</span><span class="p">:</span> <span class="mi">287</span><span class="p">,</span>
+      <span class="dl">"</span><span class="s2">bottom</span><span class="dl">"</span><span class="p">:</span> <span class="mi">277</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<p>해당 사진은 0.94의 신뢰도를 받았습니다.</p>
+
+<p>Luxand가 Face API만 전문으로 하는 기업이라 그런지 전체적인 신뢰도는 Azure보다 높았습니다.</p>
+
+<p><br /></p>
+<h2 id="azure-face-api를-선택하게-된-이유">Azure Face API를 선택하게 된 이유</h2>
+<p><br /></p>
+
+<ul>
+  <li>합리적인 가격</li>
+</ul>
+
+<p>성능도 중요하지만 가격은 서비스를 선택하는데 아주 중요한 요소 중 하나입니다. Azure Cognitive Service의 무료서비스는 월별 30,000개의 트랜잭션(API 호출)을 무료로 제공하고 있고 표준 서비스는 1000개의 트랜잭션당 1달러로 아주 합리적인 금액 입니다. Face Storage도 매월 1,000개당 $0.01로 저렴한 편입니다.</p>
+
+<p>Luxand의 가격 책정은 500개의 API호출까지만 무료로 제공하고 있습니다. Basic플랜은 한달에 $19에 10,000개의 API호출까지만 가능하고 500개의 얼굴만 저장할 수 있습니다. 헬스장에 다니는 회원들의 얼굴을 다 저장해야 한다고 가정하면 아마 가격이 배로 뛸 것 입니다.</p>
+
+<p>Azure Cognitive Service의 가격책정에 대한 자세한 정보는 아래 링크에서 확인할 수 있습니다.</p>
+
+<p><a href="https://azure.microsoft.com/ko-kr/pricing/details/cognitive-services/face-api/">https://azure.microsoft.com/ko-kr/pricing/details/cognitive-services/face-api/</a></p>
+
+<ul>
+  <li>좋은 성능</li>
+</ul>
+
+<p>얼굴 인식 속도를 테스트 해보았을 때 API콜 당 700-1200ms내외로 빠릅니다. 저장된 얼굴의 개수에 따라 달라지겠지만 사용하면서 인식이 느리다고 느낀적은 없습니다. 그리고 평균 0.8-0.9 내의 신뢰도로 인식도 정확합니다.</p>
+
+<ul>
+  <li>안정적인 클라우드 플랫폼</li>
+</ul>
+
+<p>요즘 국내 유명한 기업들에서도 Face Recognition 서비스들을 출시하고 있지만, Azure Face API는 Microsoft의 제품이므로 더 신뢰할 수 있습니다.</p>
+
+<p><br /></p>
+<h2 id="글을-마치며">글을 마치며..</h2>
+<p><br />
+서플라이스에 입사해서 다양한 것들을 해볼 수 있어서 좋았는데 그 중 하나가 Face API를 사용해본 것입니다. 비록 간단하게 사용해보았지만 평소엔 접해보지 못 한 것들을 해보면서 재미있었습니다.</p>
+
+<p>서플라이스는 피트니스 시장에서 빠르게 성장하고 있는 스타트업입니다. 함께 경험을 쌓고 성장하실 분은 언제든 아래 공고에 지원 부탁드립니다.</p>
+
+<p>• <a href="https://www.notion.so/17d545a40be3463784f3f4861a923c64">채용 공고 보러가기</a></p>
+
+                </div>
+            </section>
+
+            <!-- Email subscribe form at the bottom of the page -->
+            
+
+            <footer class="post-full-footer">
+                <!-- Everything inside the #author tags pulls data from the author -->
+                <!-- #author-->
+                
+                    
+                        <section class="author-card">
+                            
+                                <img class="author-profile-image" src="/tech-blog/assets/images/authors/sue.jpeg" alt="Sue" />
+                            
+                            <section class="author-card-content">
+                                <h4 class="author-card-name"><a href="/tech-blog/author/Sue">Sue</a></h4>
+                                
+                                    <p>Backend Developer</p>
+                                
+                            </section>
+                        </section>
+                        <div class="post-full-footer-right">
+                            <a class="author-card-button" href="/tech-blog/author/Sue">Read More</a>
+                        </div>
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                <!-- /author  -->
+            </footer>
+
+            <!-- If you use Disqus comments, just uncomment this block.
+            The only thing you need to change is "test-apkdzgmqhj" - which
+            should be replaced with your own Disqus site-id. -->
+            
+
+        </article>
+
+    </div>
+</main>
+
+<!-- Links to Previous/Next posts -->
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+
+            <!-- If there's a next post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/tech-blog/rn-deeplink">
+                <div class="post-card-image" style="background-image: url(/tech-blog/assets/images/deeplink/cover.png)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/tech-blog/rn-deeplink">
+                <header class="post-card-header">
+                    
+
+                    <h2 class="post-card-title">React Native에서 딥링크 구현하기</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다.
+저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다.
+리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다.
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                
+                    
+                
+                    
+                        
+                        <img class="author-profile-image" src="/tech-blog/assets/images/authors/gwen.jpeg" alt="Gwen" />
+                        
+                        <span class="post-card-author">
+                            <a href="/tech-blog/author/Gwen/">Gwen</a>
+                        </span>
+                    
+                
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      2 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+            <!-- If there's a previous post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/tech-blog/React-Toolkit-Auto-Refetching">
+                <div class="post-card-image" style="background-image: url(/tech-blog/assets/images/React-Toolkit-Auto-Refetching/cover.png)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/tech-blog/React-Toolkit-Auto-Refetching">
+                <header class="post-card-header">
+                    
+
+                    <h2 class="post-card-title">짐박스 CRM에서 Auto-Refetching 구현하기</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>짐박스 CRM에서 Auto-Refetching 구현하기
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                        
+                        <img class="author-profile-image" src="/tech-blog/assets/images/authors/tony.jpeg" alt="Tony" />
+                        
+                        <span class="post-card-author">
+                            <a href="/tech-blog/author/Tony/">Tony</a>
+                        </span>
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      5 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+        </div>
+    </div>
+</aside>
+
+<!-- Floating header which appears on-scroll, included from includes/floating-header.hbs -->
+<div class="floating-header">
+    <div class="floating-header-logo">
+        <a href="/tech-blog/">
+            
+            <img src="/tech-blog/assets/images/supplies-logo-black.png" alt="Supplies Tech Blog icon" />
+            
+            <span>Supplies Tech Blog</span>
+        </a>
+    </div>
+    <span class="floating-header-divider">&mdash;</span>
+    <div class="floating-header-title">Azure Face API 사용기</div>
+    <!-- <div class="floating-header-share">
+        <div class="floating-header-share-label">Share this <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M7.5 15.5V4a1.5 1.5 0 1 1 3 0v4.5h2a1 1 0 0 1 1 1h2a1 1 0 0 1 1 1H18a1.5 1.5 0 0 1 1.5 1.5v3.099c0 .929-.13 1.854-.385 2.748L17.5 23.5h-9c-1.5-2-5.417-8.673-5.417-8.673a1.2 1.2 0 0 1 1.76-1.605L7.5 15.5zm6-6v2m-3-3.5v3.5m6-1v2"/>
+</svg>
+</div>
+        <a class="floating-header-share-tw" href="https://twitter.com/share?text=Azure+Face+API+%EC%82%AC%EC%9A%A9%EA%B8%B0&amp;url=https://suppliesfitness.github.io/tech-blog/azure-face-api"
+            onclick="window.open(this.href, 'share-twitter', 'width=550,height=235');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M30.063 7.313c-.813 1.125-1.75 2.125-2.875 2.938v.75c0 1.563-.188 3.125-.688 4.625a15.088 15.088 0 0 1-2.063 4.438c-.875 1.438-2 2.688-3.25 3.813a15.015 15.015 0 0 1-4.625 2.563c-1.813.688-3.75 1-5.75 1-3.25 0-6.188-.875-8.875-2.625.438.063.875.125 1.375.125 2.688 0 5.063-.875 7.188-2.5-1.25 0-2.375-.375-3.375-1.125s-1.688-1.688-2.063-2.875c.438.063.813.125 1.125.125.5 0 1-.063 1.5-.25-1.313-.25-2.438-.938-3.313-1.938a5.673 5.673 0 0 1-1.313-3.688v-.063c.813.438 1.688.688 2.625.688a5.228 5.228 0 0 1-1.875-2c-.5-.875-.688-1.813-.688-2.75 0-1.063.25-2.063.75-2.938 1.438 1.75 3.188 3.188 5.25 4.25s4.313 1.688 6.688 1.813a5.579 5.579 0 0 1 1.5-5.438c1.125-1.125 2.5-1.688 4.125-1.688s3.063.625 4.188 1.813a11.48 11.48 0 0 0 3.688-1.375c-.438 1.375-1.313 2.438-2.563 3.188 1.125-.125 2.188-.438 3.313-.875z"/></svg>
+
+        </a>
+        <a class="floating-header-share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https://suppliesfitness.github.io/tech-blog/azure-face-api"
+            onclick="window.open(this.href, 'share-facebook','width=580,height=296');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M19 6h5V0h-5c-3.86 0-7 3.14-7 7v3H8v6h4v16h6V16h5l1-6h-6V7c0-.542.458-1 1-1z"/></svg>
+
+        </a>
+    </div> -->
+    <progress class="progress" value="0">
+        <div class="progress-container">
+            <span class="progress-bar"></span>
+        </div>
+    </progress>
+</div>
+
+<!-- /post -->
+
+<!-- The #contentFor helper here will send everything inside it up to the matching #block helper found in default.hbs -->
+
+
+        <!-- Previous/next page links - displayed on every page -->
+        
+
+        <!-- The footer at the very bottom of the screen -->
+        <footer class="site-footer outer">
+            <div class="site-footer-content inner">
+                <section class="copyright"><a href="/tech-blog/">Supplies Tech Blog</a> &copy; 2022</section>
+                <!-- <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> &
+                    <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a> using
+                    <a href="https://github.com/jekyllt/jasper2" target="_blank" rel="noopener">Jasper2</a></section>
+                <nav class="site-footer-nav">
+                    <a href="/tech-blog/">Latest Posts</a>
+                    
+                    
+                    <a href="https://ghost.org" target="_blank" rel="noopener">Ghost</a> -->
+                </nav>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- The big email subscribe modal content -->
+    
+
+    <!-- highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.10.0/components/prism-abap.min.js"></script>
+    <script>$(document).ready(function () {
+            $('pre code').each(function (i, block) {
+                hljs.highlightBlock(block);
+            });
+        });</script>
+
+    <!-- jQuery + Fitvids, which makes all video embeds responsive -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous">
+        </script>
+    <script type="text/javascript" src="/tech-blog/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="https://demo.ghost.io/assets/js/jquery.fitvids.js?v=724281a32e"></script>
+
+
+    <!-- Paginator increased to "infinit" in _config.yml -->
+    <!-- if paginator.posts  -->
+    <!-- <script>
+        var maxPages = parseInt('');
+    </script>
+    <script src="/tech-blog/assets/js/infinitescroll.js"></script> -->
+    <!-- /endif -->
+
+    
+
+
+    <!-- Add Google Analytics  -->
+    <!-- Google Analytics Tracking code -->
+ <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-69281367-1', 'auto');
+  ga('send', 'pageview');
+
+ </script>
+
+
+    <!-- The #block helper will pull in data from the #contentFor other template files. In this case, there's some JavaScript which we only want to use in post.hbs, but it needs to be included down here, after jQuery has already loaded. -->
+    
+    <script>
+
+// NOTE: Scroll performance is poor in Safari
+// - this appears to be due to the events firing much more slowly in Safari.
+//   Dropping the scroll event and using only a raf loop results in smoother
+//   scrolling but continuous processing even when not scrolling
+$(document).ready(function () {
+    // Start fitVids
+    var $postContent = $(".post-full-content");
+    $postContent.fitVids();
+    // End fitVids
+
+    var progressBar = document.querySelector('progress');
+    var header = document.querySelector('.floating-header');
+    var title = document.querySelector('.post-full-title');
+
+    var lastScrollY = window.scrollY;
+    var lastWindowHeight = window.innerHeight;
+    var lastDocumentHeight = $(document).height();
+    var ticking = false;
+
+    function onScroll() {
+        lastScrollY = window.scrollY;
+        requestTick();
+    }
+
+    function onResize() {
+        lastWindowHeight = window.innerHeight;
+        lastDocumentHeight = $(document).height();
+        requestTick();
+    }
+
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(update);
+        }
+        ticking = true;
+    }
+
+    function update() {
+        var trigger = title.getBoundingClientRect().top + window.scrollY;
+        var triggerOffset = title.offsetHeight + 35;
+        var progressMax = lastDocumentHeight - lastWindowHeight;
+
+        // show/hide floating header
+        if (lastScrollY >= trigger + triggerOffset) {
+            header.classList.add('floating-active');
+        } else {
+            header.classList.remove('floating-active');
+        }
+
+        progressBar.setAttribute('max', progressMax);
+        progressBar.setAttribute('value', lastScrollY);
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onResize, false);
+
+    update();
+});
+</script>
+
+    
+
+    <!-- Ghost outputs important scripts and data with this tag - it should always be the very last thing before the closing body tag -->
+    <!-- ghost_foot -->
+
+</body>
+
+</html>

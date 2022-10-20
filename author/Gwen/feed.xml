@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<feed xmlns="http://www.w3.org/2005/Atom" >
+  <generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator>
+  <link href="/tech-blog/author/Gwen/feed.xml" rel="self" type="application/atom+xml" />
+  <link href="/tech-blog/" rel="alternate" type="text/html" />
+  <updated>2022-10-20T09:10:11+00:00</updated>
+  <id>/tech-blog/author/Gwen/feed.xml</id>
+
+  
+  
+  
+
+  
+    <title type="html">Supplies Tech Blog | </title>
+  
+
+  
+
+  
+
+  
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  
+
+  
+  
+
+  
+    <entry>
+      <title type="html">리액트 네이티브의 새로운 아키텍처</title>
+      <link href="/tech-blog/rn-new-architecture" rel="alternate" type="text/html" title="리액트 네이티브의 새로운 아키텍처" />
+      <published>2022-09-29T20:15:30+00:00</published>
+      <updated>2022-09-29T20:15:30+00:00</updated>
+      <id>/tech-blog/rn-new-architecture</id>
+      <content type="html" xml:base="/tech-blog/rn-new-architecture">&lt;blockquote&gt;
+  &lt;p&gt;2022 is going to be the year of the &lt;strong&gt;New Architecture in open
+source&lt;/strong&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;올 초, 메타의 소프트웨어 개발자는 리액트 네이티브 (이하 RN) 블로그에 “2022 is going to be the year of the &lt;strong&gt;New Architecture in open source&lt;/strong&gt;.” 라며 새로운 아키텍처를 RN 을 도입하겠다고 발표하였습니다. 어떤 변화들이 RN 에 적용되었고 될 것인지 간략하게 다루어보겠습니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;jsi&quot;&gt;JSI&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;./assets/images/new-architecture/bridge.png&quot; alt=&quot;bridge&quot; width=&quot;800&quot; /&gt;
+RN 은 단일 브릿지를 통해 자바스크립트 스레드와 네이티브 스레드가 소통하는데, 비동기식이며 JSON 직렬화 및 일괄 처리가 가능합니다. 이러한 구조로 인해 자바스크립트 스레드와 네이티브 스레드가 직접적으로 소통할 수 없다는 단점, 짧은 시간 내에 많은 상호작용이 이루어질 시 프레임 드랍이 발생하는 문제점 등이 있었습니다.
+이와 같은 문제점들을 개선하기 위해 자바스크립트 인터페이스 (JSI) 가 등장하였습니다. JSI 란 C++ 로 작성된 추상화 레이어입니다. JSI 를 통해 네이티브 메소드들은 C++ 호스트 객체를 통해 자바스크립트에 노출됩니다. 이로써 직접적으로 메소드를 실행할 수 있습니다. 또한 JSI 가 C++ 로 작성됨에 따라 RN 은 앞으로 스마트 티비, 스마트 워치와 같은 다양한 프로그램에 이식될 수 있을 것으로 예상됩니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;fabric&quot;&gt;Fabric&lt;/h2&gt;
+
+&lt;p&gt;Fabric 이란 기존 렌더링 시스템을 대체할 RN 의 새로운 렌더링 시스템입니다.
+현재 UI 가 아래와 같이 렌더링됩니다.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;앱이 실행되면, 리액트는 ReactElementTree 를 자바스크립트로 생성.&lt;/li&gt;
+  &lt;li&gt;이 트리를 기반으로, 렌더러가 C++ 로 ReactShadowTree 를 생성.&lt;/li&gt;
+  &lt;li&gt;섀도우 트리를 통해 UI 위치를 계산.&lt;/li&gt;
+  &lt;li&gt;계산이 완료되면, 섀도우 트리는 네이티브 요소들로 이루어진 HostViewTree 로 변환됨.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;이 모든 과정은 앞서 말했던 브릿지를 통해 이루어지기 때문에, 레이아웃 점프 이슈와 같은 문제가 발생하였습니다. 하지만 Fabric 은 섀도우 트리를 네이티브에 직접 생성하므로써 위 과정을 대폭 축소하였습니다. 따라서, 유저 인터페이스의 반응성과 렌더링 퍼포먼스가 매우 향상될 것입니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;turbo-modules&quot;&gt;Turbo Modules&lt;/h2&gt;
+
+&lt;p&gt;현재 아키텍처로서는 모든 네이티브 모듈(블루투스, gps, 카메라 등)이 사용 여부와 관계 없이 초기에 불러와져야 합니다. 하지만 새 아키텍처와 함께라면 자바스크립트가 이러한 모듈에 접근할 수 있기 때문에 필요할 때만 모듈을 불러올 수 있으므로 초기 시작 시간을 상당히 개선할 수 있을 것입니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;hermes&quot;&gt;Hermes&lt;/h2&gt;
+
+&lt;p&gt;RN 0.70 부터는 개발자가 선택적으로 적용할 수 있던 Hermes 가 기본 엔진으로 설정됩니다. Hermes 는 자원이 한정적인 디바이스를 위해 설계되었으며 시작 시간, 앱 크기, 메모리 사용을 최적화합니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;codegen&quot;&gt;CodeGen&lt;/h2&gt;
+
+&lt;p&gt;Codegen 은 새로운 아키텍처에 포함된 정적 type checker 입니다. 타입이 지정된 Javascript 코드를 사용하여 앱 빌드 시 네이티브 코드를 동적으로 생성하여 JS 영역과 네이티브 영역 간의 인터페이스를 허용합니다.&lt;/p&gt;
+&lt;hr /&gt;
+
+&lt;p&gt;여기까지가 제가 알아본 내용입니다. 이러한 변화들이 얼만큼의 성능 개선을 가져올지 기대가 되는 바입니다 :)&lt;/p&gt;
+
+&lt;p&gt;좀 더 자세한 내용은 아래 React Native 홈페이지에서 확인할 수 있습니다.
+&lt;a href=&quot;https://reactnative.dev/docs/next/the-new-architecture/why&quot;&gt;https://reactnative.dev/docs/next/the-new-architecture/why&lt;/a&gt;&lt;/p&gt;</content>
+
+      
+      
+      
+      
+      
+
+      <author>
+          <name>Gwen</name>
+        
+        
+      </author>
+
+      
+
+      
+
+      
+        <summary type="html">2022 is going to be the year of the New Architecture in open source.</summary>
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">React Native에서 딥링크 구현하기</title>
+      <link href="/tech-blog/rn-deeplink" rel="alternate" type="text/html" title="React Native에서 딥링크 구현하기" />
+      <published>2022-08-28T15:12:12+00:00</published>
+      <updated>2022-08-28T15:12:12+00:00</updated>
+      <id>/tech-blog/rn-deeplink</id>
+      <content type="html" xml:base="/tech-blog/rn-deeplink">&lt;p&gt;현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다.
+저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다.
+리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;딥링크&quot;&gt;딥링크&lt;/h2&gt;
+
+&lt;p&gt;딥링크란 모바일 환경 속 유저를 웹사이트가 아닌 앱의 특정 화면에 도달할 수 있게 해주는 링크입니다.
+마케팅, 참여 유도 캠페인, 쇼핑 등에 활용됩니다.&lt;/p&gt;
+
+&lt;p&gt;대게 URI Scheme 방식을 사용하는데, URI Scheme 은 Scheme://Path 라는 두 가지 요소로 구성됩니다.
+Scheme 은 앱을 특정 짓고, Path 는 도달할 화면을 의미합니다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;myapp://example&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Scheme 은 중복될 수 있다는 단점이 있어 자신의 앱을 특정 지을 수 있도록 최대한 유니크하게 작명해야 합니다.
+만일 Scheme 이 중복된다면, 사용자는 어떤 앱을 열 것인지 선택해야 할 것입니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;유니버셜-링크--앱링크&quot;&gt;유니버셜 링크 &amp;amp; 앱링크&lt;/h2&gt;
+
+&lt;p&gt;애플의 유니버셜 링크와 안드로이드의 앱링크는 딥링크와 비슷하게 작동하는 url 기반의 링크입니다.
+딥링크와는 다르게 사용자는 웹사이트를 거쳐 앱으로 이동하게 됩니다. 만약 앱이 설치되어있지 않다면, 앱스토어로 이동하게 됩니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;리액트-네이티브에서-적용하는-법&quot;&gt;리액트 네이티브에서 적용하는 법&lt;/h2&gt;
+
+&lt;h3 id=&quot;ios&quot;&gt;ios&lt;/h3&gt;
+&lt;p&gt;RCTLinking 을 프로젝트에 연결해주기 위해 아래와 같은 코드를 AppDelegate.m 에 추가합니다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 파일 최상단에 추가:
+#import &amp;lt;React/RCTLinkingManager.h&amp;gt;
+
+// `@end` 위에 추가:
+-	(BOOL)application:(UIApplication *)application
+	openURL:(NSURL *)url
+	options:(NSDictionary&amp;lt;UIApplicationOpenURLOptionsKey,id&amp;gt; *)options
+{
+	return [RCTLinkingManager application:application openURL:url options:options];
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;유니버셜 링크를 적용할 예정이라면, 아래 코드 또한 추가해줍니다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// `@end` 위에 추가:
+-	(BOOL)application:(UIApplication *)application continueUserActivity:(nonnull 		NSUserActivity *)userActivity
+restorationHandler:(nonnull void (^)(NSArray&amp;lt;id&amp;lt;UIUserActivityRestoring&amp;gt;&amp;gt; * _Nullable))restorationHandler
+{
+	return [RCTLinkingManager application:application
+			continueUserActivity:userActivity
+			restorationHandler:restorationHandler];
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;이제 xcode 를 켜고 프로젝트의 info 탭으로 이동합니다.
+딥링크가 작동할 수 있도록 URL Types 에 아이템을 하나 추가해줍시다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/deeplink/xcode-info.png&quot; alt=&quot;xcode&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;유니버셜 링크를 적용할 예정이라면, Signing &amp;amp; Capabilities 의 Associated Domains 에 도메인을 추가해줍시다.
+저희는 원링크를 통해 유니버셜 링크를 적용했기 때문에 아래 사진과 같이 도메인을 추가하였습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/deeplink/domains.png&quot; alt=&quot;AssociatedDomains&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;android&quot;&gt;android&lt;/h3&gt;
+&lt;p&gt;android/app/src/main/AndroidManifest.xml 를 아래와 같이 수정해줍시다.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;activity
+	android:name=&quot;.MainActivity&quot;
+	android:launchMode=&quot;singleTask&quot;&amp;gt;
+	&amp;lt;intent-filter&amp;gt;
+		&amp;lt;action android:name=&quot;android.intent.action.MAIN&quot; /&amp;gt;
+		&amp;lt;category android:name=&quot;android.intent.category.LAUNCHER&quot; /&amp;gt;
+	&amp;lt;/intent-filter&amp;gt;
+	&amp;lt;!-- 아래 코드를 추가 --&amp;gt;
+	&amp;lt;intent-filter&amp;gt;
+		&amp;lt;action android:name=&quot;android.intent.action.VIEW&quot; /&amp;gt;
+		&amp;lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&amp;gt;
+		&amp;lt;category android:name=&quot;android.intent.category.BROWSABLE&quot; /&amp;gt;
+		&amp;lt;data android:scheme=&quot;myapp&quot; /&amp;gt;
+	&amp;lt;/intent-filter&amp;gt;
+&amp;lt;/activity&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;앱 링크를 적용할 예정이라면, 아까 추가한 intent-filter 에 아래 코드 또한 추가해줍니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;data android:scheme=&quot;https&quot; android:host=&quot;www.example.com&quot; /&amp;gt;
+&amp;lt;data android:scheme=&quot;http&quot; android:host=&quot;www.example.com&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;** 원링크와 같은 제3자 서비스가 아닌 자체적으로 유니버셜 링크를 개발하고자 한다면 더 많은 과정이 추가될 수 있습니다.&lt;/p&gt;
+
+&lt;h4 id=&quot;linking&quot;&gt;Linking&lt;/h4&gt;
+&lt;p&gt;딥링크로 앱이 열리게 되면, 우리는 해당 이벤트를 전달 받아 원하는 바를 수행할 수 있습니다.
+React Native 의 Linking 을 통해 이를 구현해봅시다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Linking.getInitialURL().then(url =&amp;gt; {
+	if (url) {
+		// 코드
+	}
+});
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;앱이 링크를 통해 구동되었다면, url 을 반환하고 아니라면 null 을 반환합니다.
+정규식을 통해 /deep_link_value=1234 에서 1234 를 가져올 수 있도록 하였습니다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;useEffect(() =&amp;gt; {
+	const subscription = Linking.addEventListener(&quot;url&quot;, ({ url }) =&amp;gt; {
+		if (url) {
+			// 코드
+		}
+	});
+	return () =&amp;gt; {
+		subscription.remove();
+	};
+});
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;앱이 실행 중인 상태에서 링크를 처리하는 이벤트 핸들러입니다.
+두 가지 모두 상황에 맞게 작성하면 되겠습니다 :)&lt;/p&gt;
+
+&lt;h2 id=&quot;마무리하며&quot;&gt;마무리하며&lt;/h2&gt;
+&lt;p&gt;이렇게 해서 리액트 네이티브에서 딥링크 와 유니버셜 링크, 그리고 앱링크를 사용하는 법에 대해 알아보았습니다.
+원활한 테스트를 위해 시뮬레이터가 아닌 실제 기기에서 테스트 해보는 것을 추천드립니다.&lt;/p&gt;
+
+&lt;p&gt;그럼 즐거운 RN 개발 되세요!&lt;/p&gt;</content>
+
+      
+      
+      
+      
+      
+
+      <author>
+          <name>Gwen</name>
+        
+        
+      </author>
+
+      
+
+      
+
+      
+        <summary type="html">현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다. 저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다. 리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다.</summary>
+      
+
+      
+      
+    </entry>
+  
+</feed>

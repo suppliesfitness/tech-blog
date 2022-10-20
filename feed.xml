@@ -1,0 +1,769 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="/tech-blog/feed.xml" rel="self" type="application/atom+xml" /><link href="/tech-blog/" rel="alternate" type="text/html" /><updated>2022-10-20T09:10:11+00:00</updated><id>/tech-blog/feed.xml</id><title type="html">Supplies Tech Blog</title><entry><title type="html">리액트 네이티브의 새로운 아키텍처</title><link href="/tech-blog/rn-new-architecture" rel="alternate" type="text/html" title="리액트 네이티브의 새로운 아키텍처" /><published>2022-09-29T20:15:30+00:00</published><updated>2022-09-29T20:15:30+00:00</updated><id>/tech-blog/rn-new-architecture</id><content type="html" xml:base="/tech-blog/rn-new-architecture">&lt;blockquote&gt;
+  &lt;p&gt;2022 is going to be the year of the &lt;strong&gt;New Architecture in open
+source&lt;/strong&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;올 초, 메타의 소프트웨어 개발자는 리액트 네이티브 (이하 RN) 블로그에 “2022 is going to be the year of the &lt;strong&gt;New Architecture in open source&lt;/strong&gt;.” 라며 새로운 아키텍처를 RN 을 도입하겠다고 발표하였습니다. 어떤 변화들이 RN 에 적용되었고 될 것인지 간략하게 다루어보겠습니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;jsi&quot;&gt;JSI&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;./assets/images/new-architecture/bridge.png&quot; alt=&quot;bridge&quot; width=&quot;800&quot; /&gt;
+RN 은 단일 브릿지를 통해 자바스크립트 스레드와 네이티브 스레드가 소통하는데, 비동기식이며 JSON 직렬화 및 일괄 처리가 가능합니다. 이러한 구조로 인해 자바스크립트 스레드와 네이티브 스레드가 직접적으로 소통할 수 없다는 단점, 짧은 시간 내에 많은 상호작용이 이루어질 시 프레임 드랍이 발생하는 문제점 등이 있었습니다.
+이와 같은 문제점들을 개선하기 위해 자바스크립트 인터페이스 (JSI) 가 등장하였습니다. JSI 란 C++ 로 작성된 추상화 레이어입니다. JSI 를 통해 네이티브 메소드들은 C++ 호스트 객체를 통해 자바스크립트에 노출됩니다. 이로써 직접적으로 메소드를 실행할 수 있습니다. 또한 JSI 가 C++ 로 작성됨에 따라 RN 은 앞으로 스마트 티비, 스마트 워치와 같은 다양한 프로그램에 이식될 수 있을 것으로 예상됩니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;fabric&quot;&gt;Fabric&lt;/h2&gt;
+
+&lt;p&gt;Fabric 이란 기존 렌더링 시스템을 대체할 RN 의 새로운 렌더링 시스템입니다.
+현재 UI 가 아래와 같이 렌더링됩니다.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;앱이 실행되면, 리액트는 ReactElementTree 를 자바스크립트로 생성.&lt;/li&gt;
+  &lt;li&gt;이 트리를 기반으로, 렌더러가 C++ 로 ReactShadowTree 를 생성.&lt;/li&gt;
+  &lt;li&gt;섀도우 트리를 통해 UI 위치를 계산.&lt;/li&gt;
+  &lt;li&gt;계산이 완료되면, 섀도우 트리는 네이티브 요소들로 이루어진 HostViewTree 로 변환됨.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;이 모든 과정은 앞서 말했던 브릿지를 통해 이루어지기 때문에, 레이아웃 점프 이슈와 같은 문제가 발생하였습니다. 하지만 Fabric 은 섀도우 트리를 네이티브에 직접 생성하므로써 위 과정을 대폭 축소하였습니다. 따라서, 유저 인터페이스의 반응성과 렌더링 퍼포먼스가 매우 향상될 것입니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;turbo-modules&quot;&gt;Turbo Modules&lt;/h2&gt;
+
+&lt;p&gt;현재 아키텍처로서는 모든 네이티브 모듈(블루투스, gps, 카메라 등)이 사용 여부와 관계 없이 초기에 불러와져야 합니다. 하지만 새 아키텍처와 함께라면 자바스크립트가 이러한 모듈에 접근할 수 있기 때문에 필요할 때만 모듈을 불러올 수 있으므로 초기 시작 시간을 상당히 개선할 수 있을 것입니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;hermes&quot;&gt;Hermes&lt;/h2&gt;
+
+&lt;p&gt;RN 0.70 부터는 개발자가 선택적으로 적용할 수 있던 Hermes 가 기본 엔진으로 설정됩니다. Hermes 는 자원이 한정적인 디바이스를 위해 설계되었으며 시작 시간, 앱 크기, 메모리 사용을 최적화합니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;codegen&quot;&gt;CodeGen&lt;/h2&gt;
+
+&lt;p&gt;Codegen 은 새로운 아키텍처에 포함된 정적 type checker 입니다. 타입이 지정된 Javascript 코드를 사용하여 앱 빌드 시 네이티브 코드를 동적으로 생성하여 JS 영역과 네이티브 영역 간의 인터페이스를 허용합니다.&lt;/p&gt;
+&lt;hr /&gt;
+
+&lt;p&gt;여기까지가 제가 알아본 내용입니다. 이러한 변화들이 얼만큼의 성능 개선을 가져올지 기대가 되는 바입니다 :)&lt;/p&gt;
+
+&lt;p&gt;좀 더 자세한 내용은 아래 React Native 홈페이지에서 확인할 수 있습니다.
+&lt;a href=&quot;https://reactnative.dev/docs/next/the-new-architecture/why&quot;&gt;https://reactnative.dev/docs/next/the-new-architecture/why&lt;/a&gt;&lt;/p&gt;</content><author><name>Gwen</name></author><summary type="html">2022 is going to be the year of the New Architecture in open source.</summary></entry><entry><title type="html">React Native에서 딥링크 구현하기</title><link href="/tech-blog/rn-deeplink" rel="alternate" type="text/html" title="React Native에서 딥링크 구현하기" /><published>2022-08-28T15:12:12+00:00</published><updated>2022-08-28T15:12:12+00:00</updated><id>/tech-blog/rn-deeplink</id><content type="html" xml:base="/tech-blog/rn-deeplink">&lt;p&gt;현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다.
+저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다.
+리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;딥링크&quot;&gt;딥링크&lt;/h2&gt;
+
+&lt;p&gt;딥링크란 모바일 환경 속 유저를 웹사이트가 아닌 앱의 특정 화면에 도달할 수 있게 해주는 링크입니다.
+마케팅, 참여 유도 캠페인, 쇼핑 등에 활용됩니다.&lt;/p&gt;
+
+&lt;p&gt;대게 URI Scheme 방식을 사용하는데, URI Scheme 은 Scheme://Path 라는 두 가지 요소로 구성됩니다.
+Scheme 은 앱을 특정 짓고, Path 는 도달할 화면을 의미합니다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;myapp://example&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Scheme 은 중복될 수 있다는 단점이 있어 자신의 앱을 특정 지을 수 있도록 최대한 유니크하게 작명해야 합니다.
+만일 Scheme 이 중복된다면, 사용자는 어떤 앱을 열 것인지 선택해야 할 것입니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;유니버셜-링크--앱링크&quot;&gt;유니버셜 링크 &amp;amp; 앱링크&lt;/h2&gt;
+
+&lt;p&gt;애플의 유니버셜 링크와 안드로이드의 앱링크는 딥링크와 비슷하게 작동하는 url 기반의 링크입니다.
+딥링크와는 다르게 사용자는 웹사이트를 거쳐 앱으로 이동하게 됩니다. 만약 앱이 설치되어있지 않다면, 앱스토어로 이동하게 됩니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;리액트-네이티브에서-적용하는-법&quot;&gt;리액트 네이티브에서 적용하는 법&lt;/h2&gt;
+
+&lt;h3 id=&quot;ios&quot;&gt;ios&lt;/h3&gt;
+&lt;p&gt;RCTLinking 을 프로젝트에 연결해주기 위해 아래와 같은 코드를 AppDelegate.m 에 추가합니다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 파일 최상단에 추가:
+#import &amp;lt;React/RCTLinkingManager.h&amp;gt;
+
+// `@end` 위에 추가:
+-	(BOOL)application:(UIApplication *)application
+	openURL:(NSURL *)url
+	options:(NSDictionary&amp;lt;UIApplicationOpenURLOptionsKey,id&amp;gt; *)options
+{
+	return [RCTLinkingManager application:application openURL:url options:options];
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;유니버셜 링크를 적용할 예정이라면, 아래 코드 또한 추가해줍니다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// `@end` 위에 추가:
+-	(BOOL)application:(UIApplication *)application continueUserActivity:(nonnull 		NSUserActivity *)userActivity
+restorationHandler:(nonnull void (^)(NSArray&amp;lt;id&amp;lt;UIUserActivityRestoring&amp;gt;&amp;gt; * _Nullable))restorationHandler
+{
+	return [RCTLinkingManager application:application
+			continueUserActivity:userActivity
+			restorationHandler:restorationHandler];
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;이제 xcode 를 켜고 프로젝트의 info 탭으로 이동합니다.
+딥링크가 작동할 수 있도록 URL Types 에 아이템을 하나 추가해줍시다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/deeplink/xcode-info.png&quot; alt=&quot;xcode&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;유니버셜 링크를 적용할 예정이라면, Signing &amp;amp; Capabilities 의 Associated Domains 에 도메인을 추가해줍시다.
+저희는 원링크를 통해 유니버셜 링크를 적용했기 때문에 아래 사진과 같이 도메인을 추가하였습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/deeplink/domains.png&quot; alt=&quot;AssociatedDomains&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;android&quot;&gt;android&lt;/h3&gt;
+&lt;p&gt;android/app/src/main/AndroidManifest.xml 를 아래와 같이 수정해줍시다.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;activity
+	android:name=&quot;.MainActivity&quot;
+	android:launchMode=&quot;singleTask&quot;&amp;gt;
+	&amp;lt;intent-filter&amp;gt;
+		&amp;lt;action android:name=&quot;android.intent.action.MAIN&quot; /&amp;gt;
+		&amp;lt;category android:name=&quot;android.intent.category.LAUNCHER&quot; /&amp;gt;
+	&amp;lt;/intent-filter&amp;gt;
+	&amp;lt;!-- 아래 코드를 추가 --&amp;gt;
+	&amp;lt;intent-filter&amp;gt;
+		&amp;lt;action android:name=&quot;android.intent.action.VIEW&quot; /&amp;gt;
+		&amp;lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&amp;gt;
+		&amp;lt;category android:name=&quot;android.intent.category.BROWSABLE&quot; /&amp;gt;
+		&amp;lt;data android:scheme=&quot;myapp&quot; /&amp;gt;
+	&amp;lt;/intent-filter&amp;gt;
+&amp;lt;/activity&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;앱 링크를 적용할 예정이라면, 아까 추가한 intent-filter 에 아래 코드 또한 추가해줍니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;data android:scheme=&quot;https&quot; android:host=&quot;www.example.com&quot; /&amp;gt;
+&amp;lt;data android:scheme=&quot;http&quot; android:host=&quot;www.example.com&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;** 원링크와 같은 제3자 서비스가 아닌 자체적으로 유니버셜 링크를 개발하고자 한다면 더 많은 과정이 추가될 수 있습니다.&lt;/p&gt;
+
+&lt;h4 id=&quot;linking&quot;&gt;Linking&lt;/h4&gt;
+&lt;p&gt;딥링크로 앱이 열리게 되면, 우리는 해당 이벤트를 전달 받아 원하는 바를 수행할 수 있습니다.
+React Native 의 Linking 을 통해 이를 구현해봅시다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Linking.getInitialURL().then(url =&amp;gt; {
+	if (url) {
+		// 코드
+	}
+});
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;앱이 링크를 통해 구동되었다면, url 을 반환하고 아니라면 null 을 반환합니다.
+정규식을 통해 /deep_link_value=1234 에서 1234 를 가져올 수 있도록 하였습니다.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;useEffect(() =&amp;gt; {
+	const subscription = Linking.addEventListener(&quot;url&quot;, ({ url }) =&amp;gt; {
+		if (url) {
+			// 코드
+		}
+	});
+	return () =&amp;gt; {
+		subscription.remove();
+	};
+});
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;앱이 실행 중인 상태에서 링크를 처리하는 이벤트 핸들러입니다.
+두 가지 모두 상황에 맞게 작성하면 되겠습니다 :)&lt;/p&gt;
+
+&lt;h2 id=&quot;마무리하며&quot;&gt;마무리하며&lt;/h2&gt;
+&lt;p&gt;이렇게 해서 리액트 네이티브에서 딥링크 와 유니버셜 링크, 그리고 앱링크를 사용하는 법에 대해 알아보았습니다.
+원활한 테스트를 위해 시뮬레이터가 아닌 실제 기기에서 테스트 해보는 것을 추천드립니다.&lt;/p&gt;
+
+&lt;p&gt;그럼 즐거운 RN 개발 되세요!&lt;/p&gt;</content><author><name>Gwen</name></author><summary type="html">현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다. 저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다. 리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다.</summary></entry><entry><title type="html">Azure Face API 사용기</title><link href="/tech-blog/azure-face-api" rel="alternate" type="text/html" title="Azure Face API 사용기" /><published>2022-08-27T15:00:00+00:00</published><updated>2022-08-27T15:00:00+00:00</updated><id>/tech-blog/azure-face-api</id><content type="html" xml:base="/tech-blog/azure-face-api">&lt;h2 id=&quot;gymboxx-안면-출입-서비스&quot;&gt;Gymboxx 안면 출입 서비스&lt;/h2&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;안녕하세요. 서플라이스 Tech팀 백엔드 개발자 피수연입니다.&lt;/p&gt;
+
+&lt;p&gt;저희 헬스장 Gymboxx의 출입서버에서는 앱을 통한 바코드 인식과 안면인식을 통한 출입 서비스를 운영하고 있습니다.&lt;/p&gt;
+
+&lt;p&gt;짐박스 얼굴 출입 서비스는 앱을 켤 필요 없이 오직 안면 인식만으로 출입을 가능하게 하고있습니다. 따라서 회원들이 따로 휴대폰을 들고 다니지 않아도 편하게 헬스장을 출입할 수 있으며 회원들의 무단 출입을 막을 수도 있습니다.&lt;/p&gt;
+
+&lt;p&gt;얼굴 출입을 하기 위해서 먼저 회원의 얼굴을 사진을 찍어 등록합니다. 등록할 때, 회원의 얼굴 이미지에서 얼굴 특징을 감지하고 분석하여 데이터를 만든 뒤, 앞으로 회원이 출석 할 때 마다 저장된 회원 얼굴 데이터와 비교 후 동일한 얼굴로 인식이 되어야만 출입을 허가하고 있습니다.&lt;/p&gt;
+
+&lt;p&gt;이미지에서 얼굴을 감지하고 분석하기 위한 도구로 시중에 많은 Face Recognition API가 있습니다. 그 중에서 저희는 Microsoft Azure Cognitive services의 Face API를 사용하였습니다.&lt;/p&gt;
+
+&lt;p&gt;Azure Face API는 이미지에서 얼굴을 감지하고 분석하는 API입니다. 안면 인식을 통해 성별, 나이, 얼굴 표정을 통한 감정까지 인식할 수 있습니다. 또한 마스크 착용 시에도 얼굴을 감지할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;Azure Face API에 대한 설명은 간단하게 하고 사용기를 적어보겠습니다.&lt;/p&gt;
+
+&lt;p&gt;더 자세한 설명은 아래 링크에서 확인할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://azure.microsoft.com/ko-kr/services/cognitive-services/face/#overview&quot;&gt;Face API: 이미지에서 얼굴을 분석하는 AI 서비스&lt;/a&gt;
+&lt;br /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;azure-face-api-사용기&quot;&gt;Azure Face API 사용기&lt;/h2&gt;
+&lt;p&gt;&lt;br /&gt;
+Azure Face API의 간단한 사용기만 언급할 것이므로 자세한 사용방법은 아래 링크에서 확인할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://docs.microsoft.com/ko-kr/azure/cognitive-services/computer-vision/quickstarts-sdk/identity-client-library?pivots=programming-language-javascript&amp;amp;tabs=visual-studio&quot;&gt;빠른 시작: Face 서비스 사용&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;먼저 얼굴을 등록합니다. 얼굴을 등록할때, Azure 클라우드 내 person group이란 것을 만들고 그 안에 감지된 얼굴을 등록하게 됩니다. 인식된 얼굴은 person group내 person으로 저장되고 고유한 personId를 부여받게 됩니다. 그다음 azure가 부여받은 personId를 person group내에서 얼굴을 식별할 수 있도록 학습시킵니다. 학습은 비동기적으로 진행됩니다.&lt;/p&gt;
+
+&lt;p&gt;테스트를 위해 아래 사진으로 person을 등록해 보겠습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;assets/images/azure-face-api/ariana.jpeg&quot; alt=&quot;등록 사진&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;얼굴을 등록하면 다음과 같은 personId를 부여받은 것을 확인할 수 있습니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;personId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;8baca216-cc92-4dca-af37-50f74586c5e1&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;azure에 등록된 person list에서도 확인해 볼 수도 있습니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Ariana Grande&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;personId&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;8baca216-cc92-4dca-af37-50f74586c5e1&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;persistedFaceIds&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ecb30b20-faa7-4796-9fb2-6b0d352ea7fc&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;여기서 persistedFaceIds란 등록된 얼굴을 말하는데,  방금 하나를 등록했기 때문에 하나만 있는 것을 볼 수 있습니다. 같은 person에 대해서 얼굴을 추가적으로 등록할 수도 있습니다.&lt;/p&gt;
+
+&lt;p&gt;이제 얼굴을 추가했으니 얼굴 출입을 해보겠습니다. 얼굴출입은 출입할때 얼굴을 분석하여 faceId를 검출하고 Azure에 저장된 person group내에 해당 faceId와 일치하는 person을 식별하면 출입을 허용하도록 하였습니다.&lt;/p&gt;
+
+&lt;p&gt;동일인물의 다른사진으로 얼굴 출입을 해보겠습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;assets/images/azure-face-api/ari2.png&quot; alt=&quot;출입 사진1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;얼굴을 분석했을때 다음과 같은 faceId를 얻을 수 있었습니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;faceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;170970ee-db23-40fb-b7ef-78d4d7fe4614&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;recognitionModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;recognition_01&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;faceRectangle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;179&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;237&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;48&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;top&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;51&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;그리고 해당 faceId를 person group내에 person인지 indentify를 해보았을 경우&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;faceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;170970ee-db23-40fb-b7ef-78d4d7fe4614&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;candidates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;personId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;8baca216-cc92-4dca-af37-50f74586c5e1&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;confidence&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.93872&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;얼굴 등록했을때 받은 personId와 0.93의 신뢰도로 동일한 인물임을 식별할 수 있었습니다. 이때 confidence는 해당 얼굴이 등록된 personId와 얼마나 비슷한지를 의미합니다.&lt;/p&gt;
+
+&lt;p&gt;마스크를 착용한 얼굴도 동일인물로 식별할 수 있을지 테스트를 해보았습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;assets/images/azure-face-api/ariana_mask2.png&quot; alt=&quot;출입 사진2&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;faceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;f8d10b65-6157-4cbd-b6ce-5e188df6a753&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;candidates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;personId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;8baca216-cc92-4dca-af37-50f74586c5e1&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;confidence&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.74237&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;화장을 하지않고, 마크스를 착용한 얼굴임에도 0.74의 신뢰도로 동일인물로 식별하는 것을 확인할 수 있습니다.
+&lt;br /&gt;&lt;/p&gt;
+&lt;h3 id=&quot;다른-face-api는-어떨까&quot;&gt;다른 Face API는 어떨까?&lt;/h3&gt;
+&lt;p&gt;&lt;br /&gt;
+Face recogition API으로 유명한 Luxand의 Face API를 사용해보았습니다. Luxand는 Azure와 마찬가지로 다양한 언어를 지원하고 AWS를 기반한 클라우드 서비스입니다. Luxand에서는 Dashboard를 제공해주어서 직접 코드를 작성하지 않아도 쉽게 테스트 해볼 수 있었습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://luxand.cloud/&quot;&gt;Luxand&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;방법은 Azure에서와 같았습니다. 먼저 person을 등록하고 person에 face를 등록하는 방식입니다.&lt;/p&gt;
+
+&lt;p&gt;Azure Face api와의 신뢰도 비교를 위해 동일 사진으로 테스트를 해보았습니다.&lt;/p&gt;
+
+&lt;p&gt;같은 사진으로 person을 등록해보겠습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;assets/images/azure-face-api/ariana.jpeg&quot; alt=&quot;등록 사진&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;success&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;uuid&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;18eb51e9-26a2-11ed-b979-0242ac120002&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;292784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Successfully created&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;https://faces.nyc3.digitaloceanspaces.com/1904d48b-26a2-11ed-b979-0242ac120002.jpg&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;person을 등록하고 나면 성공적으로 id를 받게 됩니다. Azure Face api와 마찬가지로 해당 id에 추가로 얼굴을 등록할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;이제 얼굴 인식을 해보겠습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;assets/images/azure-face-api/ari2.png&quot; alt=&quot;출입 사진1&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;292784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Ariana Grande&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;probability&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.9995379447937012&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;rectangle&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;48&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;top&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;56&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;392&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;bottom&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;0.99의 신뢰도로 동일인물임을 식별하고 있습니다. Azure Face api보다 높은 신뢰도를 받았습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;assets/images/azure-face-api/ariana_mask2.png&quot; alt=&quot;출입 사진2&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;292784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Ariana Grande&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;probability&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.9433196783065796&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;rectangle&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;97&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;top&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;87&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;287&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;bottom&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;277&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;해당 사진은 0.94의 신뢰도를 받았습니다.&lt;/p&gt;
+
+&lt;p&gt;Luxand가 Face API만 전문으로 하는 기업이라 그런지 전체적인 신뢰도는 Azure보다 높았습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;azure-face-api를-선택하게-된-이유&quot;&gt;Azure Face API를 선택하게 된 이유&lt;/h2&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;합리적인 가격&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;성능도 중요하지만 가격은 서비스를 선택하는데 아주 중요한 요소 중 하나입니다. Azure Cognitive Service의 무료서비스는 월별 30,000개의 트랜잭션(API 호출)을 무료로 제공하고 있고 표준 서비스는 1000개의 트랜잭션당 1달러로 아주 합리적인 금액 입니다. Face Storage도 매월 1,000개당 $0.01로 저렴한 편입니다.&lt;/p&gt;
+
+&lt;p&gt;Luxand의 가격 책정은 500개의 API호출까지만 무료로 제공하고 있습니다. Basic플랜은 한달에 $19에 10,000개의 API호출까지만 가능하고 500개의 얼굴만 저장할 수 있습니다. 헬스장에 다니는 회원들의 얼굴을 다 저장해야 한다고 가정하면 아마 가격이 배로 뛸 것 입니다.&lt;/p&gt;
+
+&lt;p&gt;Azure Cognitive Service의 가격책정에 대한 자세한 정보는 아래 링크에서 확인할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://azure.microsoft.com/ko-kr/pricing/details/cognitive-services/face-api/&quot;&gt;https://azure.microsoft.com/ko-kr/pricing/details/cognitive-services/face-api/&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;좋은 성능&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;얼굴 인식 속도를 테스트 해보았을 때 API콜 당 700-1200ms내외로 빠릅니다. 저장된 얼굴의 개수에 따라 달라지겠지만 사용하면서 인식이 느리다고 느낀적은 없습니다. 그리고 평균 0.8-0.9 내의 신뢰도로 인식도 정확합니다.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;안정적인 클라우드 플랫폼&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;요즘 국내 유명한 기업들에서도 Face Recognition 서비스들을 출시하고 있지만, Azure Face API는 Microsoft의 제품이므로 더 신뢰할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;글을-마치며&quot;&gt;글을 마치며..&lt;/h2&gt;
+&lt;p&gt;&lt;br /&gt;
+서플라이스에 입사해서 다양한 것들을 해볼 수 있어서 좋았는데 그 중 하나가 Face API를 사용해본 것입니다. 비록 간단하게 사용해보았지만 평소엔 접해보지 못 한 것들을 해보면서 재미있었습니다.&lt;/p&gt;
+
+&lt;p&gt;서플라이스는 피트니스 시장에서 빠르게 성장하고 있는 스타트업입니다. 함께 경험을 쌓고 성장하실 분은 언제든 아래 공고에 지원 부탁드립니다.&lt;/p&gt;
+
+&lt;p&gt;• &lt;a href=&quot;https://www.notion.so/17d545a40be3463784f3f4861a923c64&quot;&gt;채용 공고 보러가기&lt;/a&gt;&lt;/p&gt;</content><author><name>Sue</name></author><summary type="html">Gymboxx 안면 출입 서비스</summary></entry><entry><title type="html">짐박스 CRM에서 Auto-Refetching 구현하기</title><link href="/tech-blog/React-Toolkit-Auto-Refetching" rel="alternate" type="text/html" title="짐박스 CRM에서 Auto-Refetching 구현하기" /><published>2022-08-22T00:15:01+00:00</published><updated>2022-08-22T00:15:01+00:00</updated><id>/tech-blog/React-Toolkit-Auto-Refetching</id><content type="html" xml:base="/tech-blog/React-Toolkit-Auto-Refetching">&lt;h1 id=&quot;짐박스-crm에서-auto-refetching-구현하기&quot;&gt;짐박스 CRM에서 Auto-Refetching 구현하기&lt;/h1&gt;
+
+&lt;h2 id=&quot;들어가며&quot;&gt;들어가며&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;CRM(Customer Relationship Management)&lt;/strong&gt; 은 고객 관계 관리 프로그램으로 말하며, 짐박스에 대입하여 말하자면 “헬스장을 다니고 있는 회원의 데이터 관리 프로그램” 으로 설명할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;CRM의 목적은 회원님이 어떤 상품을 결제했고, 이를 언제 갱신하며, 필요한 특정 행동들을 취하는 것이 그 목적이라 할 수 있겠습니다.&lt;/p&gt;
+
+&lt;h2 id=&quot;뭐가-문제야&quot;&gt;뭐가 문제야?&lt;/h2&gt;
+
+&lt;p&gt;초기 짐박스 CRM 은 Redux 를 사용하여 상태를 관리하고 있었습니다. 하지만 시간이 갈수록 CRM의 덩치가 커지면서 여러가지 기능들이 붙기 시작했습니다.&lt;/p&gt;
+
+&lt;p&gt;그러다 보니 actionType을 정의하고, 그 함수를 정의하고 Reducer를 정의하여 1개의 액션을 생성하는 방식은 점차 비효율적으로 다가왔고, 이에따라 Redux-Toolkit 패키지 중 RTK Query를 도입했습니다.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;우리가 왜 RTK Query를 도입했는가? 3줄로 요약하면,&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;CRM 특성상 여러가지 액션이 많은데, 이를 Redux를 통해 일일히 작성하는 것은 무리&lt;/li&gt;
+  &lt;li&gt;Hook 을 제공하여 데이터를 Fetching, Catching 할 때의 State를 쉽게 사용할 수 있음&lt;/li&gt;
+  &lt;li&gt;Auto-ReFetching 의 효율성&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;query--mutation-그리고-auto-refetching&quot;&gt;Query &amp;amp; Mutation, 그리고 Auto-Refetching&lt;/h2&gt;
+
+&lt;p&gt;지금부터 RTK Query의 Query와 Mutation 을 간단하게 알아보고 &lt;strong&gt;이를 자동으로 Refetching 하는 구조에 대해 이야기해보고자 합니다.&lt;/strong&gt; Query와 Mutation 에 대한 자세한 설명은 &lt;a href=&quot;https://redux-toolkit.js.org/rtk-query/usage/queries&quot;&gt;공식&lt;/a&gt; &lt;a href=&quot;https://redux-toolkit.js.org/rtk-query/usage/mutations&quot;&gt;문서&lt;/a&gt;에서 확인 가능합니다.&lt;/p&gt;
+
+&lt;h3 id=&quot;query&quot;&gt;Query&lt;/h3&gt;
+
+&lt;p&gt;일반적으로 Redux에서 데이터(상태)를 불러오는 과정을 설명하면&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;상태를 관리하는 리덕스 스토어에서 Reducer 를 호출하고 그 리턴 값을 초기 상태로 저장하고&lt;/li&gt;
+  &lt;li&gt;UI가 처음 렌더링 될 때, 이 UI를 렌더링하는 컴포넌트는 위 리덕스 스토어의 상태에 접근하며&lt;/li&gt;
+  &lt;li&gt;이 상태를 렌더링에 활용합니다.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;이 데이터의 상태를 감지하기 위해서는 여러번의 useSelector, useEffect 를 사용해야합니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;하지만 RTK Query 에서는 useQuery Hook 을 제공하여, 이 모든 것을 하나의 Hook으로 대체합니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;또한 해당 Hook 에는 Query의 Loading, Fetch, Error 의 상태를 알 수 있는 프로퍼티들이 존재하여, UI의 가변성을 높여줍니다.&lt;/p&gt;
+
+&lt;p&gt;데이터가 Loading 상태일 때는 스피너를 보여주고, 데이터를 성공적으로 받아오면(Success) UI, 에러가 발생하면(Error) 에러 메세지를 보여주는 식으로 말이죠.&lt;/p&gt;
+
+&lt;h3 id=&quot;mutation&quot;&gt;Mutation&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Redux에서 데이터를 업데이트하는 방식도 RTKQ가 제공하는 Mutation Hook으로 단순화 할 수 있습니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;일반적으로 Redux 에서는 아래와 같이 데이터를 업데이트합니다.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;유저가 UI 를 통해 이벤트 핸들러를 작동시키면&lt;/li&gt;
+  &lt;li&gt;Dispatch 가 일어나서 액션을 일으키고&lt;/li&gt;
+  &lt;li&gt;스토어에서는 액션 타입과 payload 값을 받고&lt;/li&gt;
+  &lt;li&gt;이전 상태와 들어온 액션으로 리듀서 함수를 실행하고, 함수의 리턴 값을 새로운 상태로 변경한다.&lt;/li&gt;
+  &lt;li&gt;상태값이 변화함에 따라 해당 스토어를 구독 중인 UI들은 새로운 상태 값으로 렌더링 된다.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;이를 위해서는 여러가지 액션 타입을 정의해주고, 액션 함수를 생성해야했으며 이에 따라 보일러플레이트 코드를 생성해줘야만 했습니다.&lt;/p&gt;
+
+&lt;p&gt;Mutation Hook 은 액션 타입, 액션 함수 생성 등 여러가지 불필요한 코드를 작성하지 않고도, 상태를 업데이트할 수 있게 도와줍니다. &lt;strong&gt;또한 Mutation은 Trigger 함수를 파라미터로 제공하며, 해당 Trigger 함수를 통해 상태를 업데이트 할 수 있습니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;useQuery Hook 과 동일하게, 상태를 알 수 있는 여러 프로퍼티를 제공하여 UI의 가변성을 높여줍니다.&lt;/p&gt;
+
+&lt;h3 id=&quot;auto-refetching&quot;&gt;Auto-Refetching&lt;/h3&gt;
+
+&lt;p&gt;useQuery, useMutation 을 통해 데이터를 가져오고 수정하더라도 이를 실시간으로 확인할 수 없다면 사용하는 유저 입장에서는 혼돈이 올 수 밖에 없습니다. 특정 버튼을 눌러 새로고침을 하거나, 아예 페이지를 새로고침하는 방법이 있을 수 있긴 한데 이는 UX 측면에서 상당히 불필요한 행동입니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;RTKQ 에서는 불필요한 행동을 방지하고, 유저에게 가장 최근의 데이터를 보여줄 수 있는 Auto-Refetching 기능을 구현할 수 있습니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;☝🏻 RTKQ 에서는 Query 와 Mutation 의 연관관계를 정의함으로써 자동으로 데이터를 Refetching 할 수 있는데, &lt;strong&gt;이는 Tag 를 사용하여 가능합니다.&lt;/strong&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;🤞🏻 &lt;strong&gt;이때 Tag 는 Automated Re-fetching 을 위한 고유한 값입니다&lt;/strong&gt;. Label 이라고 생각하면 편하며, Query 가 제공하고 Mutation 이 Re-fetching을 할지 안할지 결정합니다.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;우선 createApi 내부에서 &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tagTypes&lt;/code&gt;&lt;/strong&gt; 를 선언합니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tagTypes&lt;/code&gt;&lt;/strong&gt;는 Array 형식으로 선언하며 각 항목은 String 값으로 선언되어야합니다. 보통 Tag는 Query와 Mutation 의 관계를 명확하게 이해할 수 있는 값으로 선언합니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;createApi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetchBaseQuery&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;@reduxjs/toolkit/query&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;api&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;createApi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;baseQuery&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetchBaseQuery&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;baseUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;tagTypes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// createApi 파라미터에서 tagTypes 선언&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;endpoints&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;getPosts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/posts&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;getUsers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/users&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;addPost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;mutation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;POST&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;그 이후 endpoints 함수에 Tag 값을 부여합니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;이때 Query는 Tag를 부여하는 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;provideTags&lt;/code&gt;로, Mutation은 Tag를 Invalidate 하는 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;invalidateTags&lt;/code&gt;로 부여합니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;createApi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetchBaseQuery&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;@reduxjs/toolkit/query&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;api&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;createApi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;baseQuery&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetchBaseQuery&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;baseUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;tagTypes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// createApi 파라미터에서 tagTypes 선언&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;endpoints&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;getPosts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/posts&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;providesTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// posts를 호출할 때 해당 데이터에 Post Tag 부여&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;getUsers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/users&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;providesTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// users를 호출할 때 해당 데이터에 User Tag 부여&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;addPost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;mutation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;POST&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;invalidateTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Post를 추가할 때, &quot;Post&quot; Tag를 갖고 있는 Query를 새로고침함&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;하지만 이럴 경우, Mutation으로 하나의 값을 변경했을 때 전체 Query를 불러와 성능에 문제를 일으킬 수 있습니다. 이는 &lt;strong&gt;CRM에서 자주 사용하는 Table 형태의 UI에서 나타날 수 있는 이슈입니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;createApi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetchBaseQuery&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;@reduxjs/toolkit/query&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;api&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;createApi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;baseQuery&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fetchBaseQuery&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;baseUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;tagTypes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// createApi 파라미터에서 tagTypes 선언&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;endpoints&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;getPosts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;/posts&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+			&lt;span class=&quot;na&quot;&gt;providesTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// posts를 호출할 때 해당 데이터에 Post Tag 부여&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;getUsers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;/users&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+			&lt;span class=&quot;na&quot;&gt;providesTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// users를 호출할 때 해당 데이터에 User Tag 부여&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;addPost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;mutation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;POST&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+			&lt;span class=&quot;na&quot;&gt;invalidateTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Post를 추가할 때, &quot;Post&quot; Tag를 갖고 있는 Query를 새로고침함&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;editPost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;mutation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;`post/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;POST&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+			&lt;span class=&quot;na&quot;&gt;invalidateTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}),&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;위 코드에서 getPosts 로 여러개의 Post를 가져온다고 가정해봅시다. 그리고 그 중 하나의 Post를 editPost로 Post의 제목을 수정한다고 하면, 아래와 같은 플로우로 진행이 될 것입니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/React-Toolkit-Auto-Refetching/Auto-Refetching-Sample.png&quot; alt=&quot;Untitled&quot; /&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;useEditPostMutation이 제공하는 Trigger 함수로 상태를 변경합니다.&lt;/li&gt;
+  &lt;li&gt;같은 Tag 값을 갖고 있는 useGetPostsQuery 가 Refetching 되어 전체 Post를 내려줍니다.&lt;/li&gt;
+  &lt;li&gt;UI 에서는 변경된 제목을 확인할 수 있습니다.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;이때 변경된 Post 값은 1개 인데, 다른 Post 들도 Refetching 되는 이슈가 발생할 수 있습니다. 이때 Query 가 호출하는 데이터에 각각 다른 값을 부여하여 Mutation으로 변경되는 값만 Refetch를 할 수 있습니다.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;이는 Tag 에게 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tagType&lt;/code&gt; 외에 ID를 부여하여 해결할 수 있습니다. 방법은 아래와 같습니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;우선 Query 로 데이터를 호출할 때 &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tagType&lt;/code&gt;외에 고유 값에 기반하여, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Id&lt;/code&gt; 값을 Tag로 부여합니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;providesTags&lt;/code&gt;는 result 파라미터를 갖는데, 이 result 파라미터를 통해 Query로 불러온 데이터를 받고, 그 중 고유한 값을 Tag로 부여할 Id 값으로 선정합니다. (아래 코드에서는 postId)&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;providesTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt;
+	&lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;?&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;[...&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(({&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;postId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;})&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;({&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;postId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;})),&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Array 마지막 값으로 &quot;Post&quot;를 제공함으로, addPost 등 전체 값을 다시 가져와야하는 Mutation이 발생할 때,&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// 해당 Query를 Refetch 할 수 있음&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;마찬가지로 Mutation 에도 Tag에 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Id&lt;/code&gt; 값을 부여합니다. &lt;strong&gt;이를 통해 Mutation이 실행되었을 때, 해당 Mutation으로 변경한 값(arg.id 와 postId가 일치한 값)만 다시 Refetching을 할 수 있습니다.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;invalidatesTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[{&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}],&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;만약 특정 Id 값 외에 다른 Tag 도 Refetching 해야한다고 한다면 아래와 같은 방식으로도 사용이 가능합니다.&lt;/p&gt;
+
+&lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;invalidatesTags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[{&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]],&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// 특정 Post 값 외에 User Tag를 갖는 데이터 ReFetching&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;마치며&quot;&gt;마치며&lt;/h2&gt;
+
+&lt;p&gt;특정 행동을 취하고 이를 통해 데이터 값이 변화함을 유저가 느낄 수 있는 것은 CRM에서 매우 중요합니다. 변화함을 인지하지 못하고 특정 행동을 계속 반복하는 불상사를 방지할 수 있기 때문입니다.&lt;/p&gt;
+
+&lt;p&gt;RTK Query 는 데이터의 Fetching, Catching을 간편하게 구현해줄 수 있을 뿐만 아니라 특정 값의 Refetching 을 통해 언제나 데이터를 최신 값으로 유지할 수 있는 장점이 있습니다.&lt;/p&gt;</content><author><name>Tony</name></author><summary type="html">짐박스 CRM에서 Auto-Refetching 구현하기</summary></entry><entry><title type="html">React function component</title><link href="/tech-blog/deep-dive-into-react-function-component" rel="alternate" type="text/html" title="React function component" /><published>2022-08-21T00:00:01+00:00</published><updated>2022-08-21T00:00:01+00:00</updated><id>/tech-blog/deep-dive-into-react-function-component</id><content type="html" xml:base="/tech-blog/deep-dive-into-react-function-component">&lt;h1 id=&quot;deep-dive-into-react-function-components&quot;&gt;Deep dive into React Function Components&lt;/h1&gt;
+
+&lt;h2 id=&quot;들어가기-전에&quot;&gt;들어가기 전에&lt;/h2&gt;
+
+&lt;p&gt;스타트업에서 서비스(이하 프로덕트)을 개발하면서 가장 크게 느낀 점은 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;제한된 리소스를 최대한 활용&lt;/code&gt;해야하는 것이다. 제한된 리소스에는 사람, 돈, 그리고 시간이 있다. 최대한 활용이라는 건 최대의 프로덕트 임팩트를 의미한다. 결과적으로는 반드시 프로덕트가 좋아야하고 더하여 달성하는 과정에서 가장 효율적인 자원 할당을 판단하는 것도 상당히 중요하다. 그리고 그 판단은 회사의 사정에 따라 실시간으로 바뀌기도 한다.&lt;/p&gt;
+
+&lt;aside&gt;
+💡 키워드 = 한정된 리소스, 최대 임팩트
+
+&lt;/aside&gt;
+
+&lt;h2 id=&quot;react-와-react-native&quot;&gt;React 와 React Native&lt;/h2&gt;
+
+&lt;h3 id=&quot;nodejs&quot;&gt;node.js&lt;/h3&gt;
+
+&lt;p&gt;스타트업은 태생적으로 한정된 자원을 가진다. 사람, 돈, 시간이라는 모든 부분에서 효율적으로 사용되지 않으면 살아남을 수가 없다. node.js 스택은 그래서 스타트업에서 사용되는 기본적인 언어가 아닌가 싶다. node.js는 태생이 웹 애플리케이션을 만드는 언어이다. 그리고 스타트업에서는 어떻게든 사용자가 사용할 수 있는 형태로 만들긴 해야 하니 생존을 위해 풀스택 개발자 1명이나 1~2명의 개발자(최근 개발자 몸값이 천정부지로 솟구치고 있으니ㅜㅜ)로 애플리케이션을 만든다. 백엔드 개발자가 언제든지 프론트엔드 개발도 볼 줄은 아는 상황이 생길 수도 있으니 개발 언어를 맞추는건 괜찮은 생존 방법이겠죠.&lt;/p&gt;
+
+&lt;h3 id=&quot;react-react-native&quot;&gt;React, React Native&lt;/h3&gt;
+
+&lt;p&gt;node.js로 선택하니 그 다음은 프론트엔드 프레임워크를 선택해야하는데요. 프론트엔드 웹 프레임워크는 몇가지 선택지가 있다. React, Vue 정도가 있는데 React 가 그냥 더 좋았다. 그리고 우리가 만들 서비스는 네이티브 개발도 필요했고 React Native와 Flutter가 선택지였다. 구글 트렌드를 쳐봐도 구글링을 해봐도 flutter가 낫다(최소 이제 flutter ≥ RN)는 블로그 글들이 많아서 선택을 주저하기는 했지만, 생존을 위해 RN으로 강행했다. JSI, RN 0.68 에서 Hermes 엔진 등으로 퍼포먼스 이슈는 솔직히 거의 없다고 봐도 될 것 같다. 또, 프론트엔드 개발자를 채용할때도 dart 쓸 줄 아는 사람이 있긴 있을까 싶었다. 그래서 결국 React, React Native로 결정했다. (잘한 결정인것 같다.)&lt;/p&gt;
+
+&lt;h2 id=&quot;function-components-그리고-hooks&quot;&gt;Function components 그리고 Hooks&lt;/h2&gt;
+
+&lt;p&gt;2019년에 React 16.8이 나오면서 Hooks가 소개되었다. Hooks가 나오면서부터 function component가 기본 component가 되었다. 그럼 왜 React에서 function components가 주류가 되었을까?&lt;/p&gt;
+
+&lt;aside&gt;
+💡 참고 : [React 16.8](https://reactjs.org/blog/2019/02/06/react-v16.8.0.html) 공식블로그 바로가기
+
+&lt;/aside&gt;
+
+&lt;h3 id=&quot;class-component-vs-function-components&quot;&gt;Class component vs Function Components&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/react-function-component/class-component-sample.png&quot; alt=&quot;Class Component&quot; /&gt;
+&lt;img src=&quot;./assets/images/react-function-component/function-component-sample.png&quot; alt=&quot;Function Component&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Class component와 function component의 가장 기본적인 모습이다. 두 components의 확연한 차이는 render() 함수가 있고 없고가 가장 다른 것 처럼 보인다.&lt;/p&gt;
+
+&lt;p&gt;Docs만 읽어보면 class component가 functional component에 비해서 더 좋을 것만 같다. 왜냐하면 Class component는 state와 lifecycle의 기능을 갖기 때문이다. 그런데 이 기능들은 이제 더 이상 Class component에서만 사용할 수 있는 것이 아니라, Hooks를 통해 functional component에서도 가능하게 되었다. 심지어 더 간단한 코드로 구현이 가능해졌다.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;state, this 기능 → useState&lt;/li&gt;
+  &lt;li&gt;lifecycle 기능 → useEffect&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;useState가 뭔지는 여기서는 더 설명하지 않겠다.&lt;/p&gt;
+
+&lt;h3 id=&quot;class-component의-의도치-않은-버그&quot;&gt;Class component의 의도치 않은 버그&lt;/h3&gt;
+
+&lt;p&gt;아무리 자료를 찾아봐도 성능에 대한 이점은 function component와 class component 어느 한쪽의 손을 들어주기가 어렵다. 그러면 도대체 Function component를 사용하면 코드가 더 간단해지는 것 말고 또 무슨 이점이 있을까? React의 아버지라 부를 수 있는 &lt;a href=&quot;https://overreacted.io/how-are-function-components-different-from-classes/&quot;&gt;Dan Abramov의 블로그&lt;/a&gt;를 살펴보면 class component의 문제점을 알 수 있다.&lt;/p&gt;
+
+&lt;p&gt;바로 “function component는 렌더링된 값을 갖고” 있다는 것이다. 이게 무슨말이지? 상태일테니 예시를 하나 들어보자.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;./assets/images/react-function-component/class-component-sample2.png&quot; alt=&quot;Untitled&quot; /&gt;
+&lt;img src=&quot;./assets/images/react-function-component/function-component-sample2.png&quot; alt=&quot;Untitled&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;프로필 페이지 컴포넌트는 user 이름을 props로 전달 받는다. 이 컴포넌트에서 팔로우 버튼을 누르면 3초 후 alert가 뜨는 component이다. 그럼 이제 JD를 팔로우해보자. 3초 후에 “Followed JD”가 뜰 것이다. 여기까지 굿!&lt;/p&gt;
+
+&lt;p&gt;그럼 이런 경우는 어떨까? JD props로 내려준 상황에서 팔로우를 누르고 다시 Dean으로 props를 내려준다면? 이해를 돕기 위해 아래 그림을 먼저 보자.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://overreacted.io/386a449110202d5140d67336a0ade5a0/bug.gif&quot; alt=&quot;https://overreacted.io/386a449110202d5140d67336a0ade5a0/bug.gif&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;그림에서 보면 Dan을 팔로우했음에도 불구하고 “Followed Sophie”가 화면에서 보인다. function component는 렌더링된 값을 갖고 있기 때문에 class component에서 생긴 문제가 발생하지 않는다. 물론 Class component도 이 문제를 해결할수는 있다(해결 방법은 &lt;a href=&quot;https://overreacted.io/how-are-function-components-different-from-classes/&quot;&gt;여기서&lt;/a&gt;). 하지만 굳이 이렇게 해결하기보다 function component를 쓰면 고민할 것도 없다.&lt;/p&gt;
+
+&lt;h3 id=&quot;lifecycle-useeffect로-구현하기&quot;&gt;Lifecycle useEffect로 구현하기&lt;/h3&gt;
+
+&lt;p&gt;그럼 이제 function component로 코드를 심플하게 구현하게 되었고, component lifecycle은 어떻게 해결할까? useEffect로 아주 쉽게 해결할 수 있다.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;componentDidMount()&lt;/p&gt;
+
+    &lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;useEffect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;componentDidMount&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;componentDidUpdate(), (getDerivedStateFromProps())&lt;/p&gt;
+
+    &lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;useEffect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;componentDidUpdate&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;orState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;componentWillUnmount()&lt;/p&gt;
+
+    &lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;useEffect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;componentWillUnmount&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;orState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;componentDidMount(), componentDidUpdate(), componetWillUnmount(), (getDerivedStateFromProps())&lt;/p&gt;
+
+    &lt;div class=&quot;language-jsx highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;useEffect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;componentDidMount, componentDidUpdate, componetWillUnmount&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;1과2는 아주 자주 사용해봤을 것이고, 3번은 거의 사용할 일은 없지만 필요할 때가 있으니 숙지해놓으면 좋을 것이다!&lt;/p&gt;
+
+&lt;h2 id=&quot;마치며&quot;&gt;마치며&lt;/h2&gt;
+
+&lt;p&gt;하루에도 수많은 스타트업들(그리고 프로젝트 TF)에서 개발 스택을 무엇으로 할 지 결정하느라 머리가 아플 것 같다. 우리 팀은 한정된 자원을 효율적으로 관리하기 위해, 앞으로 닥칠 리스크를 최대한 헷징하기 위해 React, React native를 개발 스택으로 선택했다. 그리고 그 결정은 괜찮았던 것 같다.&lt;/p&gt;
+
+&lt;p&gt;React를 아무 생각없이 쓰다보면 저와같이 어느 순간 function component를 쓰고 있을 것이다. 그런데 이유는 알아야 function component를 더 잘 활용할 것 같았다. 굳이 class component를 function component로 바꿀 필요는 없겠지만, 새로 시작한다면 function component를 사용해보자.&lt;/p&gt;
+
+&lt;p&gt;서플라이스는 피트니스를 혁신하고 있습니다. 저희 회사에 관심이 있는 능력자분들은 언제든지 아래 메일로 연락주세요.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;jd@suppliesfitness.com&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://supplies.notion.site/17d545a40be3463784f3f4861a923c64&quot;&gt;채용 공고 보러가기&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;서플라이스-브랜드들&quot;&gt;서플라이스 브랜드들&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://gymboxx.co.kr/&quot;&gt;짐박스 피트니스&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://prepperskorea.com/&quot;&gt;프레퍼스 다이어트 푸드&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://suppliesfitness.com/&quot;&gt;서플라이스 온라인 쇼핑몰&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Jd</name></author><summary type="html">Deep dive into React Function Components</summary></entry><entry><title type="html">SQS와 Lamdba로 푸시 발송 로직 개선하기</title><link href="/tech-blog/aws-sns-push" rel="alternate" type="text/html" title="SQS와 Lamdba로 푸시 발송 로직 개선하기" /><published>2022-07-25T08:18:01+00:00</published><updated>2022-07-25T08:18:01+00:00</updated><id>/tech-blog/aws-sns-push</id><content type="html" xml:base="/tech-blog/aws-sns-push">&lt;p&gt;안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다.&lt;/p&gt;
+
+&lt;p&gt;최근 운영 중인 제품이 많아지고 각각의 서비스에서 공통으로 필요한 기능이 생기면서 코드 중복을 포함한 몇 가지 문제가 생겼습니다.
+특히나 앱 푸시 발송의 경우 거의 모든 서버에서 공통으로 필요한 기능이 되었습니다.
+그래서 앱 푸시 기능을 분리하는 작업이 시급했는데요, 최근에 이 부분을 낮은 결합도(Coupling)와 높은 응집도(Cohesion)를 가진 구조로 개선하였습니다.&lt;/p&gt;
+
+&lt;h3 id=&quot;기존-구조과-문제점&quot;&gt;기존 구조과 문제점&lt;/h3&gt;
+&lt;p&gt;현재 저희는 독립적인 6개의 node 서버가 실행되고 있는데요, 제품 도메인을 기준으로 유저 서버, 키오스크 서버, 트레이너 서버, 출입 서버, 관리자 서버 등으로 구분되어 있습니다.
+각각의 node 서버가 도메인을 기준으로 분리되어 있다 보니 동일한 기능을 하는 함수의 중복이 발생하는 문제가 있었습니다. 대표적인 예시가 앱 푸시 발송 입니다.
+아래 그림과 같이 기존 구조에서는 각각의 서버에서 FCM을 통해 사용자에게 푸시를 발송하고 있습니다.
+&lt;img src=&quot;./assets/images/aws-sns-push/old_architecture.png&quot; alt=&quot;기존 구조&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;위와 같은 구조에서는 몇 가지 문제가 존재합니다.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;App Server, Trainer Server, Kiosk Server에서 FCM을 초기화하고 앱 푸시를 발송하는 로직이 중복된다.&lt;/li&gt;
+  &lt;li&gt;서버에서 직접 FCM에 푸시 발송을 요청하기 때문에 결합도가 높은 문제가 존재한다.
+    &lt;ol&gt;
+      &lt;li&gt;푸시 발송 결과를 기다리는 동안 다른 로직이 실행되지 못한다. (응답 속도 이슈도 생길 수 있다.)&lt;/li&gt;
+      &lt;li&gt;앱 푸시 실패로 다른 로직이 함께 실패할 수 있거나 앱 푸시 실패를 handling 하는 코드를 각각의 서버에 작성해야 한다.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;대량 앱 푸시 발송에 적합하지 않다. 대량 앱 푸시 발송의 load가 단일 서버에 집중된다.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;새로운-구조&quot;&gt;새로운 구조&lt;/h3&gt;
+&lt;p&gt;이러한 문제들은 푸시 발송 구조를 변경함으로써 개선 할 수 있었습니다.
+아래 그림과 같이 각각의 서버의 푸시 발송 요청은 AWS SQS를 통해 모이고 queue에 message가 들어가면 lambda를 트리거하여 실행하도록 하였습니다.
+결과적으로 앱 서버와 푸시 발송의 결합도(Coupling)가 낮아지고 메세징 람다는 독립적인 기능을 수행하기 때문에 높은 응집도(Cohesion)가 있다고 볼 수 있습니다.
+뿐만 아니라 lambda의 batch 기능을 통해 queue에 모인 message를 batch 단위로 가져와 작업함으로써 작업 중 발생하는 db 조회의 부하를 낮출 수 있습니다.
+&lt;img src=&quot;./assets/images/aws-sns-push/new_architecture.png&quot; alt=&quot;새로운 구조&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;성능-개선-테스트&quot;&gt;성능 개선 테스트&lt;/h3&gt;
+&lt;p&gt;푸시 발송 구조를 바꿈으로써 많은 양의 코드 중복을 줄이고 load를 분산 시킬 수 있었습니다.
+그러나 대량의 푸시가 queue에 쌓이고 이를 람다가 처리할 때 DB의 CPU가 순간적으로 높게 튀는 현상이 발생했는데요, 이는 Lambda의 뛰어난 동시성(concurency) 때문이기도 했습니다.
+하나의 푸시 발송 요청이 queue에 들어오면 lamdba는 이 message를 가져가서 푸시 알림을 보내고 디비에 저장하는데요, 이 과정이 짧은 시간 안에 수천 번 동시에 반복되면 DB에 부하가 발생했습니다.
+이 문제를 해결하기 위해 람다의 batch size와 batching window를 조절하면서 적정한 값을 찾으려고 했습니다.
+참고로 batch size는 람다가 queue에서 동시에 최대 몇 개의 message를 가져오는지에 대한 값이고 batching window는 람다가 message를 가져올 때 최대 몇 초간 기다릴지에 대한 값입니다.
+테스트는 t2 micro 사이즈의 테스트 디비에서 실행 하였고 비교 값은 아래와 같이 설정하여 테스트 했습니다.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;batchSize: 1, maximumBatchingWindow: 0&lt;/li&gt;
+  &lt;li&gt;batchSize: 10, maximumBatchingWindow: 0&lt;/li&gt;
+  &lt;li&gt;batchSize: 100, maximumBatchingWindow: 1 (batchSize가 넘어가면 0을 초과하는 값으로 maximumBatchingWindow를 설정해야 합니다.)
+&lt;img src=&quot;./assets/images/aws-sns-push/performance_test.png&quot; alt=&quot;테스트&quot; width=&quot;800&quot; /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;테스트는 저희에게 가장 일반적인 상황(동시 푸시 발송수가 수천인 경우)으로 시행하였고 결과를 요약하면 아래와 같습니다.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;batchSize가 1인 경우 눈에 띄게 DB에 부하가 발생했고 10, 100인 경우에는 큰 차이가 없었다.&lt;/li&gt;
+  &lt;li&gt;maximumBatchingWindow가 0을 초과하는경우 눈에띄게 푸시 알림이 늦게 도착했다.&lt;/li&gt;
+  &lt;li&gt;수만 개 이상의 message를 동시처리 하는 경우가 아니라면 maximumBatchingWindow값은 가능하면 0으로 하고 batchSize는 maximumBatchingWindow값을 0으로 할 수 있는 최댓값인 10이 적절해 보였다.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;마치며&quot;&gt;마치며&lt;/h3&gt;
+&lt;p&gt;Tech 팀에서 개발 블로그를 운영하기로 한 여러가지 이유 중 하나는 본인이 해본 것을 제대로 알고 넘어가기 위해서입니다.
+저 또한 많은 경우 제대로 동작하면 깊게 알아보지 않고 넘어가는 경우가 많았는데요, 주기적으로 blog에 글을 포스팅하며 해본 것을 제대로 숙지하고자 합니다.&lt;/p&gt;
+
+&lt;p&gt;끝으로 서플라이스 개발자 채용을 홍보합니다. 서플라이스는 피트니스 시장에서 빠르게 성장하고 있는 스타트업입니다. 개발자로 이 시장에서 함께 경험을 쌓고 성장하실 분은 언제든 아래 주소로 메일 부탁드립니다.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;dean@suppliesfitness.com&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://supplies.notion.site/17d545a40be3463784f3f4861a923c64&quot;&gt;채용 공고 보러가기&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Dean</name></author><summary type="html">안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다.</summary></entry></feed>

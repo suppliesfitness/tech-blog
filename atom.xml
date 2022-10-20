@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title> - Articles</title>
+    <description></description>
+    <link>
+    </link>
+    
+      
+      <item>
+        <title>리액트 네이티브의 새로운 아키텍처</title>
+        
+          <description>&lt;blockquote&gt;
+  &lt;p&gt;2022 is going to be the year of the &lt;strong&gt;New Architecture in open
+source&lt;/strong&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+</description>
+        
+        <pubDate>Thu, 29 Sep 2022 20:15:30 +0000</pubDate>
+        <link>
+        /rn-new-architecture</link>
+        <guid isPermaLink="true">/rn-new-architecture</guid>
+      </item>
+      
+    
+      
+      <item>
+        <title>React Native에서 딥링크 구현하기</title>
+        
+          <description>&lt;p&gt;현재 저희 팀에서는 유저들의 챌린지 참여율을 높이기 위해 다방면에서 노력하고 있습니다.
+저희는 챌린지 소개 및 신청 화면에 보다 용이한 접근을 위해 딥링크를 적용하기로 하였습니다.
+리액트 네이티브에서 어떻게 딥링크를 구현했는지 작성해보겠습니다.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Sun, 28 Aug 2022 15:12:12 +0000</pubDate>
+        <link>
+        /rn-deeplink</link>
+        <guid isPermaLink="true">/rn-deeplink</guid>
+      </item>
+      
+    
+      
+      <item>
+        <title>Azure Face API 사용기</title>
+        
+          <description>&lt;h2 id=&quot;gymboxx-안면-출입-서비스&quot;&gt;Gymboxx 안면 출입 서비스&lt;/h2&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Sat, 27 Aug 2022 15:00:00 +0000</pubDate>
+        <link>
+        /azure-face-api</link>
+        <guid isPermaLink="true">/azure-face-api</guid>
+      </item>
+      
+    
+      
+      <item>
+        <title>짐박스 CRM에서 Auto-Refetching 구현하기</title>
+        
+          <description>&lt;h1 id=&quot;짐박스-crm에서-auto-refetching-구현하기&quot;&gt;짐박스 CRM에서 Auto-Refetching 구현하기&lt;/h1&gt;
+
+</description>
+        
+        <pubDate>Mon, 22 Aug 2022 00:15:01 +0000</pubDate>
+        <link>
+        /React-Toolkit-Auto-Refetching</link>
+        <guid isPermaLink="true">/React-Toolkit-Auto-Refetching</guid>
+      </item>
+      
+    
+      
+      <item>
+        <title>React function component</title>
+        
+          <description>&lt;h1 id=&quot;deep-dive-into-react-function-components&quot;&gt;Deep dive into React Function Components&lt;/h1&gt;
+
+</description>
+        
+        <pubDate>Sun, 21 Aug 2022 00:00:01 +0000</pubDate>
+        <link>
+        /deep-dive-into-react-function-component</link>
+        <guid isPermaLink="true">/deep-dive-into-react-function-component</guid>
+      </item>
+      
+    
+      
+      <item>
+        <title>SQS와 Lamdba로 푸시 발송 로직 개선하기</title>
+        
+          <description>&lt;p&gt;안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Mon, 25 Jul 2022 08:18:01 +0000</pubDate>
+        <link>
+        /aws-sns-push</link>
+        <guid isPermaLink="true">/aws-sns-push</guid>
+      </item>
+      
+    
+  </channel>
+</rss>

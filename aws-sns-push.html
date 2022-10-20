@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Base Meta -->
+    <!-- dynamically fixing the title for tag/author pages -->
+
+
+
+    <title>SQS와 Lamdba로 푸시 발송 로직 개선하기</title>
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/screen.edited.css" />
+    <link rel="stylesheet" type="text/css" href="/tech-blog/assets/built/syntax.css" />
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+    <style>
+        .hljs {
+            background: none;
+        }
+    </style>
+
+    <!--[if IE]>
+        <style>
+            p, ol, ul{
+                width: 100%;
+            }
+            blockquote{
+                width: 100%;
+            }
+        </style>
+    <![endif]-->
+
+    <!-- This tag outputs SEO meta+structured data and other important settings -->
+    <meta name="description"
+    content="" />
+<link rel="shortcut icon" href="/tech-blog/assets/images/supplies-logo-black.png" type="image/png" />
+<link rel="canonical"
+    href="/tech-blog/aws-sns-push" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+
+<!--title below is coming from _includes/dynamic_title-->
+<meta property="og:site_name" content="Supplies Tech Blog" />
+<meta property="og:type" content="website" />
+<meta property="og:title"
+    content="SQS와 Lamdba로 푸시 발송 로직 개선하기" />
+<meta property="og:description"
+    content="안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다. 최근 운영 중인 제품이 많아지고 각각의 서비스에서 공통으로 필요한 기능이 생기면서 코드 중복을 포함한 몇 가지 문제가 생겼습니다. 특히나 앱 푸시 발송의 경우 거의 모든 서버에서 공통으로 필요한 기능이 되었습니다. 그래서 앱 푸시 기능을 분리하는 작업이 시급했는데요, 최근에 이 부분을 낮은 결합도(Coupling)와 높은 응집도(Cohesion)를" />
+<meta property="og:url"
+    content="/tech-blog/aws-sns-push" />
+<meta property="og:image"
+    content="/tech-blog/assets/images/aws-sns-push/new_architecture.png" />
+<meta property="article:publisher" content="https://www.facebook.com/" />
+<meta property="article:author" content="https://www.facebook.com/" />
+<meta property="article:published_time"
+    content="2022-07-25T08:18:01+00:00" />
+<meta property="article:modified_time"
+    content="2022-07-25T08:18:01+00:00" />
+
+<!-- <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SQS와 Lamdba로 푸시 발송 로직 개선하기" />
+    <meta name="twitter:description" content="안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다. 최근 운영 중인 제품이 많아지고 각각의 서비스에서 공통으로 필요한 기능이 생기면서 코드 중복을 포함한 몇 가지 문제가 생겼습니다. 특히나 앱 푸시 발송의 경우 거의 모든 서버에서 공통으로 필요한 기능이 되었습니다. 그래서 앱 푸시 기능을 분리하는 작업이 시급했는데요, 최근에 이 부분을 낮은 결합도(Coupling)와 높은 응집도(Cohesion)를" />
+    <meta name="twitter:url" content="/tech-blog/" />
+    <meta name="twitter:image" content="/tech-blog/assets/images/aws-sns-push/new_architecture.png" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Supplies Tech Blog" />
+    <meta name="twitter:site" content="@" />
+    <meta name="twitter:creator" content="@" /> -->
+<meta property="og:image:width" content="1400" />
+<meta property="og:image:height" content="933" />
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Website",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Supplies Tech Blog",
+        "logo": "/tech-blog/"
+    },
+    "url": "/tech-blog/aws-sns-push",
+    "image": {
+        "@type": "ImageObject",
+        "url": "/tech-blog/assets/images/aws-sns-push/new_architecture.png",
+        "width": 2000,
+        "height": 666
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/tech-blog/aws-sns-push"
+    },
+    "description": "안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다. 최근 운영 중인 제품이 많아지고 각각의 서비스에서 공통으로 필요한 기능이 생기면서 코드 중복을 포함한 몇 가지 문제가 생겼습니다. 특히나 앱 푸시 발송의 경우 거의 모든 서버에서 공통으로 필요한 기능이 되었습니다. 그래서 앱 푸시 기능을 분리하는 작업이 시급했는데요, 최근에 이 부분을 낮은 결합도(Coupling)와 높은 응집도(Cohesion)를"
+}
+    </script>
+
+<!-- <script type="text/javascript" src="https://demo.ghost.io/public/ghost-sdk.min.js?v=724281a32e"></script>
+    <script type="text/javascript">
+    ghost.init({
+    	clientId: "ghost-frontend",
+    	clientSecret: "f84a07a72b17"
+    });
+    </script> -->
+
+<meta name="generator" content="Jekyll 3.6.2" />
+<link rel="alternate" type="application/rss+xml"
+    title="SQS와 Lamdba로 푸시 발송 로직 개선하기"
+    href="/tech-blog/feed.xml" />
+
+</head>
+
+<body
+    class="post-template">
+
+    <div class="site-wrapper">
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The tag above means: insert everything in this file
+into the {body} of the default.hbs template -->
+
+<header class="site-header outer">
+    <div class="inner">
+        <nav class="site-nav">
+    <div class="site-nav-left">
+        
+            
+                <a class="site-nav-logo" href="/tech-blog/">Supplies Tech Blog</a>
+            
+        
+        
+            <ul class="nav" role="menu">
+    <!-- <li class="nav-home" role="menuitem"><a href="/tech-blog/">Home</a></li> -->
+    <!-- <li class="nav-about" role="menuitem"><a href="/tech-blog/about/">About</a></li>
+    <li class="nav-getting-started" role="menuitem"><a href="/tech-blog/tag/getting-started/">Getting Started</a></li>
+    <li class="nav-try-ghost" role="menuitem"><a href="https://ghost.org">Try Ghost</a></li> -->
+</ul>
+        
+    </div>
+    <div class="site-nav-right">
+        <div class="social-links">
+            
+            
+        </div>
+        
+    </div>
+</nav>
+
+    </div>
+</header>
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<main id="site-main" class="site-main outer" role="main">
+    <div class="inner">
+
+        <article class="post-full  post ">
+
+            <header class="post-full-header">
+                <section class="post-full-meta">
+                    <time class="post-full-meta-date" datetime="25 July 2022">25 July 2022</time>
+                    
+                </section>
+                <h1 class="post-full-title">SQS와 Lamdba로 푸시 발송 로직 개선하기</h1>
+            </header>
+
+            
+            <figure class="post-full-image" style="background-image: url(/tech-blog/assets/images/aws-sns-push/new_architecture.png)">
+            </figure>
+            
+
+            <section class="post-full-content">
+                <div class="kg-card-markdown">
+                    <p>안녕하세요. 서플라이스 Tech팀 백엔드 개발자 김영덕입니다.</p>
+
+<p>최근 운영 중인 제품이 많아지고 각각의 서비스에서 공통으로 필요한 기능이 생기면서 코드 중복을 포함한 몇 가지 문제가 생겼습니다.
+특히나 앱 푸시 발송의 경우 거의 모든 서버에서 공통으로 필요한 기능이 되었습니다.
+그래서 앱 푸시 기능을 분리하는 작업이 시급했는데요, 최근에 이 부분을 낮은 결합도(Coupling)와 높은 응집도(Cohesion)를 가진 구조로 개선하였습니다.</p>
+
+<h3 id="기존-구조과-문제점">기존 구조과 문제점</h3>
+<p>현재 저희는 독립적인 6개의 node 서버가 실행되고 있는데요, 제품 도메인을 기준으로 유저 서버, 키오스크 서버, 트레이너 서버, 출입 서버, 관리자 서버 등으로 구분되어 있습니다.
+각각의 node 서버가 도메인을 기준으로 분리되어 있다 보니 동일한 기능을 하는 함수의 중복이 발생하는 문제가 있었습니다. 대표적인 예시가 앱 푸시 발송 입니다.
+아래 그림과 같이 기존 구조에서는 각각의 서버에서 FCM을 통해 사용자에게 푸시를 발송하고 있습니다.
+<img src="./assets/images/aws-sns-push/old_architecture.png" alt="기존 구조" width="600" /></p>
+
+<p>위와 같은 구조에서는 몇 가지 문제가 존재합니다.</p>
+<ul>
+  <li>App Server, Trainer Server, Kiosk Server에서 FCM을 초기화하고 앱 푸시를 발송하는 로직이 중복된다.</li>
+  <li>서버에서 직접 FCM에 푸시 발송을 요청하기 때문에 결합도가 높은 문제가 존재한다.
+    <ol>
+      <li>푸시 발송 결과를 기다리는 동안 다른 로직이 실행되지 못한다. (응답 속도 이슈도 생길 수 있다.)</li>
+      <li>앱 푸시 실패로 다른 로직이 함께 실패할 수 있거나 앱 푸시 실패를 handling 하는 코드를 각각의 서버에 작성해야 한다.</li>
+    </ol>
+  </li>
+  <li>대량 앱 푸시 발송에 적합하지 않다. 대량 앱 푸시 발송의 load가 단일 서버에 집중된다.</li>
+</ul>
+
+<h3 id="새로운-구조">새로운 구조</h3>
+<p>이러한 문제들은 푸시 발송 구조를 변경함으로써 개선 할 수 있었습니다.
+아래 그림과 같이 각각의 서버의 푸시 발송 요청은 AWS SQS를 통해 모이고 queue에 message가 들어가면 lambda를 트리거하여 실행하도록 하였습니다.
+결과적으로 앱 서버와 푸시 발송의 결합도(Coupling)가 낮아지고 메세징 람다는 독립적인 기능을 수행하기 때문에 높은 응집도(Cohesion)가 있다고 볼 수 있습니다.
+뿐만 아니라 lambda의 batch 기능을 통해 queue에 모인 message를 batch 단위로 가져와 작업함으로써 작업 중 발생하는 db 조회의 부하를 낮출 수 있습니다.
+<img src="./assets/images/aws-sns-push/new_architecture.png" alt="새로운 구조" width="800" /></p>
+
+<h3 id="성능-개선-테스트">성능 개선 테스트</h3>
+<p>푸시 발송 구조를 바꿈으로써 많은 양의 코드 중복을 줄이고 load를 분산 시킬 수 있었습니다.
+그러나 대량의 푸시가 queue에 쌓이고 이를 람다가 처리할 때 DB의 CPU가 순간적으로 높게 튀는 현상이 발생했는데요, 이는 Lambda의 뛰어난 동시성(concurency) 때문이기도 했습니다.
+하나의 푸시 발송 요청이 queue에 들어오면 lamdba는 이 message를 가져가서 푸시 알림을 보내고 디비에 저장하는데요, 이 과정이 짧은 시간 안에 수천 번 동시에 반복되면 DB에 부하가 발생했습니다.
+이 문제를 해결하기 위해 람다의 batch size와 batching window를 조절하면서 적정한 값을 찾으려고 했습니다.
+참고로 batch size는 람다가 queue에서 동시에 최대 몇 개의 message를 가져오는지에 대한 값이고 batching window는 람다가 message를 가져올 때 최대 몇 초간 기다릴지에 대한 값입니다.
+테스트는 t2 micro 사이즈의 테스트 디비에서 실행 하였고 비교 값은 아래와 같이 설정하여 테스트 했습니다.</p>
+<ul>
+  <li>batchSize: 1, maximumBatchingWindow: 0</li>
+  <li>batchSize: 10, maximumBatchingWindow: 0</li>
+  <li>batchSize: 100, maximumBatchingWindow: 1 (batchSize가 넘어가면 0을 초과하는 값으로 maximumBatchingWindow를 설정해야 합니다.)
+<img src="./assets/images/aws-sns-push/performance_test.png" alt="테스트" width="800" /></li>
+</ul>
+
+<p>테스트는 저희에게 가장 일반적인 상황(동시 푸시 발송수가 수천인 경우)으로 시행하였고 결과를 요약하면 아래와 같습니다.</p>
+<ul>
+  <li>batchSize가 1인 경우 눈에 띄게 DB에 부하가 발생했고 10, 100인 경우에는 큰 차이가 없었다.</li>
+  <li>maximumBatchingWindow가 0을 초과하는경우 눈에띄게 푸시 알림이 늦게 도착했다.</li>
+  <li>수만 개 이상의 message를 동시처리 하는 경우가 아니라면 maximumBatchingWindow값은 가능하면 0으로 하고 batchSize는 maximumBatchingWindow값을 0으로 할 수 있는 최댓값인 10이 적절해 보였다.</li>
+</ul>
+
+<h3 id="마치며">마치며</h3>
+<p>Tech 팀에서 개발 블로그를 운영하기로 한 여러가지 이유 중 하나는 본인이 해본 것을 제대로 알고 넘어가기 위해서입니다.
+저 또한 많은 경우 제대로 동작하면 깊게 알아보지 않고 넘어가는 경우가 많았는데요, 주기적으로 blog에 글을 포스팅하며 해본 것을 제대로 숙지하고자 합니다.</p>
+
+<p>끝으로 서플라이스 개발자 채용을 홍보합니다. 서플라이스는 피트니스 시장에서 빠르게 성장하고 있는 스타트업입니다. 개발자로 이 시장에서 함께 경험을 쌓고 성장하실 분은 언제든 아래 주소로 메일 부탁드립니다.</p>
+<ul>
+  <li>dean@suppliesfitness.com</li>
+  <li><a href="https://supplies.notion.site/17d545a40be3463784f3f4861a923c64">채용 공고 보러가기</a></li>
+</ul>
+
+                </div>
+            </section>
+
+            <!-- Email subscribe form at the bottom of the page -->
+            
+
+            <footer class="post-full-footer">
+                <!-- Everything inside the #author tags pulls data from the author -->
+                <!-- #author-->
+                
+                    
+                
+                    
+                        <section class="author-card">
+                            
+                                <img class="author-profile-image" src="/tech-blog/assets/images/authors/dean.jpg" alt="Dean" />
+                            
+                            <section class="author-card-content">
+                                <h4 class="author-card-name"><a href="/tech-blog/author/Dean">Dean</a></h4>
+                                
+                                    <p>Backend Developer</p>
+                                
+                            </section>
+                        </section>
+                        <div class="post-full-footer-right">
+                            <a class="author-card-button" href="/tech-blog/author/Dean">Read More</a>
+                        </div>
+                    
+                
+                    
+                
+                    
+                
+                <!-- /author  -->
+            </footer>
+
+            <!-- If you use Disqus comments, just uncomment this block.
+            The only thing you need to change is "test-apkdzgmqhj" - which
+            should be replaced with your own Disqus site-id. -->
+            
+
+        </article>
+
+    </div>
+</main>
+
+<!-- Links to Previous/Next posts -->
+<aside class="read-next outer">
+    <div class="inner">
+        <div class="read-next-feed">
+            
+
+            <!-- If there's a next post, display it using the same markup included from - partials/post-card.hbs -->
+            
+                
+
+    <article class="post-card post-template">
+        
+            <a class="post-card-image-link" href="/tech-blog/deep-dive-into-react-function-component">
+                <div class="post-card-image" style="background-image: url(/tech-blog/assets/images/react-function-component/function-component-sample.png)"></div>
+            </a>
+        
+        <div class="post-card-content">
+            <a class="post-card-content-link" href="/tech-blog/deep-dive-into-react-function-component">
+                <header class="post-card-header">
+                    
+
+                    <h2 class="post-card-title">React function component</h2>
+                </header>
+                <section class="post-card-excerpt">
+                    
+                        <p>Deep dive into React Function Components
+
+</p>
+                    
+                </section>
+            </a>
+            <footer class="post-card-meta">
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                <span class="reading-time">
+                    
+                    
+                      3 min read
+                    
+                </span>
+            </footer>
+        </div>
+    </article>
+
+            
+
+            <!-- If there's a previous post, display it using the same markup included from - partials/post-card.hbs -->
+            
+
+        </div>
+    </div>
+</aside>
+
+<!-- Floating header which appears on-scroll, included from includes/floating-header.hbs -->
+<div class="floating-header">
+    <div class="floating-header-logo">
+        <a href="/tech-blog/">
+            
+            <img src="/tech-blog/assets/images/supplies-logo-black.png" alt="Supplies Tech Blog icon" />
+            
+            <span>Supplies Tech Blog</span>
+        </a>
+    </div>
+    <span class="floating-header-divider">&mdash;</span>
+    <div class="floating-header-title">SQS와 Lamdba로 푸시 발송 로직 개선하기</div>
+    <!-- <div class="floating-header-share">
+        <div class="floating-header-share-label">Share this <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M7.5 15.5V4a1.5 1.5 0 1 1 3 0v4.5h2a1 1 0 0 1 1 1h2a1 1 0 0 1 1 1H18a1.5 1.5 0 0 1 1.5 1.5v3.099c0 .929-.13 1.854-.385 2.748L17.5 23.5h-9c-1.5-2-5.417-8.673-5.417-8.673a1.2 1.2 0 0 1 1.76-1.605L7.5 15.5zm6-6v2m-3-3.5v3.5m6-1v2"/>
+</svg>
+</div>
+        <a class="floating-header-share-tw" href="https://twitter.com/share?text=SQS%EC%99%80+Lamdba%EB%A1%9C+%ED%91%B8%EC%8B%9C+%EB%B0%9C%EC%86%A1+%EB%A1%9C%EC%A7%81+%EA%B0%9C%EC%84%A0%ED%95%98%EA%B8%B0&amp;url=https://suppliesfitness.github.io/tech-blog/aws-sns-push"
+            onclick="window.open(this.href, 'share-twitter', 'width=550,height=235');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M30.063 7.313c-.813 1.125-1.75 2.125-2.875 2.938v.75c0 1.563-.188 3.125-.688 4.625a15.088 15.088 0 0 1-2.063 4.438c-.875 1.438-2 2.688-3.25 3.813a15.015 15.015 0 0 1-4.625 2.563c-1.813.688-3.75 1-5.75 1-3.25 0-6.188-.875-8.875-2.625.438.063.875.125 1.375.125 2.688 0 5.063-.875 7.188-2.5-1.25 0-2.375-.375-3.375-1.125s-1.688-1.688-2.063-2.875c.438.063.813.125 1.125.125.5 0 1-.063 1.5-.25-1.313-.25-2.438-.938-3.313-1.938a5.673 5.673 0 0 1-1.313-3.688v-.063c.813.438 1.688.688 2.625.688a5.228 5.228 0 0 1-1.875-2c-.5-.875-.688-1.813-.688-2.75 0-1.063.25-2.063.75-2.938 1.438 1.75 3.188 3.188 5.25 4.25s4.313 1.688 6.688 1.813a5.579 5.579 0 0 1 1.5-5.438c1.125-1.125 2.5-1.688 4.125-1.688s3.063.625 4.188 1.813a11.48 11.48 0 0 0 3.688-1.375c-.438 1.375-1.313 2.438-2.563 3.188 1.125-.125 2.188-.438 3.313-.875z"/></svg>
+
+        </a>
+        <a class="floating-header-share-fb" href="https://www.facebook.com/sharer/sharer.php?u=https://suppliesfitness.github.io/tech-blog/aws-sns-push"
+            onclick="window.open(this.href, 'share-facebook','width=580,height=296');return false;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M19 6h5V0h-5c-3.86 0-7 3.14-7 7v3H8v6h4v16h6V16h5l1-6h-6V7c0-.542.458-1 1-1z"/></svg>
+
+        </a>
+    </div> -->
+    <progress class="progress" value="0">
+        <div class="progress-container">
+            <span class="progress-bar"></span>
+        </div>
+    </progress>
+</div>
+
+<!-- /post -->
+
+<!-- The #contentFor helper here will send everything inside it up to the matching #block helper found in default.hbs -->
+
+
+        <!-- Previous/next page links - displayed on every page -->
+        
+
+        <!-- The footer at the very bottom of the screen -->
+        <footer class="site-footer outer">
+            <div class="site-footer-content inner">
+                <section class="copyright"><a href="/tech-blog/">Supplies Tech Blog</a> &copy; 2022</section>
+                <!-- <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> &
+                    <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a> using
+                    <a href="https://github.com/jekyllt/jasper2" target="_blank" rel="noopener">Jasper2</a></section>
+                <nav class="site-footer-nav">
+                    <a href="/tech-blog/">Latest Posts</a>
+                    
+                    
+                    <a href="https://ghost.org" target="_blank" rel="noopener">Ghost</a> -->
+                </nav>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- The big email subscribe modal content -->
+    
+
+    <!-- highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.10.0/components/prism-abap.min.js"></script>
+    <script>$(document).ready(function () {
+            $('pre code').each(function (i, block) {
+                hljs.highlightBlock(block);
+            });
+        });</script>
+
+    <!-- jQuery + Fitvids, which makes all video embeds responsive -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous">
+        </script>
+    <script type="text/javascript" src="/tech-blog/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="https://demo.ghost.io/assets/js/jquery.fitvids.js?v=724281a32e"></script>
+
+
+    <!-- Paginator increased to "infinit" in _config.yml -->
+    <!-- if paginator.posts  -->
+    <!-- <script>
+        var maxPages = parseInt('');
+    </script>
+    <script src="/tech-blog/assets/js/infinitescroll.js"></script> -->
+    <!-- /endif -->
+
+    
+
+
+    <!-- Add Google Analytics  -->
+    <!-- Google Analytics Tracking code -->
+ <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-69281367-1', 'auto');
+  ga('send', 'pageview');
+
+ </script>
+
+
+    <!-- The #block helper will pull in data from the #contentFor other template files. In this case, there's some JavaScript which we only want to use in post.hbs, but it needs to be included down here, after jQuery has already loaded. -->
+    
+    <script>
+
+// NOTE: Scroll performance is poor in Safari
+// - this appears to be due to the events firing much more slowly in Safari.
+//   Dropping the scroll event and using only a raf loop results in smoother
+//   scrolling but continuous processing even when not scrolling
+$(document).ready(function () {
+    // Start fitVids
+    var $postContent = $(".post-full-content");
+    $postContent.fitVids();
+    // End fitVids
+
+    var progressBar = document.querySelector('progress');
+    var header = document.querySelector('.floating-header');
+    var title = document.querySelector('.post-full-title');
+
+    var lastScrollY = window.scrollY;
+    var lastWindowHeight = window.innerHeight;
+    var lastDocumentHeight = $(document).height();
+    var ticking = false;
+
+    function onScroll() {
+        lastScrollY = window.scrollY;
+        requestTick();
+    }
+
+    function onResize() {
+        lastWindowHeight = window.innerHeight;
+        lastDocumentHeight = $(document).height();
+        requestTick();
+    }
+
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(update);
+        }
+        ticking = true;
+    }
+
+    function update() {
+        var trigger = title.getBoundingClientRect().top + window.scrollY;
+        var triggerOffset = title.offsetHeight + 35;
+        var progressMax = lastDocumentHeight - lastWindowHeight;
+
+        // show/hide floating header
+        if (lastScrollY >= trigger + triggerOffset) {
+            header.classList.add('floating-active');
+        } else {
+            header.classList.remove('floating-active');
+        }
+
+        progressBar.setAttribute('max', progressMax);
+        progressBar.setAttribute('value', lastScrollY);
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onResize, false);
+
+    update();
+});
+</script>
+
+    
+
+    <!-- Ghost outputs important scripts and data with this tag - it should always be the very last thing before the closing body tag -->
+    <!-- ghost_foot -->
+
+</body>
+
+</html>
